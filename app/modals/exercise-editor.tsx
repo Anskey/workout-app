@@ -4,7 +4,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { Button, Pill, SectionHeader } from '@/theme/ui';
-import { GlassCard } from '@/theme/GlassCard';
+import { Card } from '@/theme/Card';
 import { ModalHeader } from '@/components/ModalHeader';
 import { MeasurementField } from '@/components/MeasurementField';
 import { generateId, useStore } from '@/store/useStore';
@@ -70,7 +70,7 @@ export default function ExerciseEditor() {
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <ModalHeader title={existing ? 'Edit Exercise' : 'New Exercise'} />
 
-          <GlassCard style={{ marginBottom: 16 }}>
+          <Card style={{ marginBottom: 16 }}>
             <SectionHeader>Name</SectionHeader>
             <TextInput
               value={name}
@@ -86,9 +86,9 @@ export default function ExerciseEditor() {
                 <Pill key={m} label={m} active={muscles.includes(m)} onPress={() => toggleMuscle(m)} />
               ))}
             </View>
-          </GlassCard>
+          </Card>
 
-          <GlassCard style={{ marginBottom: 16 }}>
+          <Card style={{ marginBottom: 16 }}>
             <SectionHeader>Prescription</SectionHeader>
             <MeasurementField label="Warm-up Sets" unit="" value={warmupSets} onChangeText={setWarmupSets} placeholder="1-2" />
             <MeasurementField label="Working Sets" unit="" value={workingSets} onChangeText={setWorkingSets} placeholder="2" />
@@ -96,9 +96,9 @@ export default function ExerciseEditor() {
             <MeasurementField label="Early Set RPE" unit="" value={earlyRPE} onChangeText={setEarlyRPE} placeholder="~7" />
             <MeasurementField label="Last Set RPE" unit="" value={lastRPE} onChangeText={setLastRPE} placeholder="~9" />
             <MeasurementField label="Rest" unit="" value={rest} onChangeText={setRest} placeholder="~2 min" />
-          </GlassCard>
+          </Card>
 
-          <GlassCard>
+          <Card>
             <SectionHeader>Substitutions (comma separated)</SectionHeader>
             <TextInput
               value={substitutions}
@@ -108,7 +108,7 @@ export default function ExerciseEditor() {
               style={styles.input}
               multiline
             />
-          </GlassCard>
+          </Card>
 
           <Button label="Save" onPress={onSave} disabled={!name.trim()} style={{ marginTop: 20 }} />
           {existing && <Button label="Delete Exercise" variant="ghost" onPress={onDelete} style={{ marginTop: 14 }} />}
@@ -124,10 +124,10 @@ const styles = StyleSheet.create({
   input: {
     color: colors.textPrimary,
     fontSize: 16,
-    backgroundColor: colors.glassFill,
+    backgroundColor: colors.surface,
     borderRadius: 2,
     borderWidth: 1,
-    borderColor: colors.glassBorder,
+    borderColor: colors.surfaceBorder,
     paddingHorizontal: 14,
     paddingVertical: 12,
     marginBottom: 6,

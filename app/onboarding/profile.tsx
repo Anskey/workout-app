@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { Button, Pill, ScreenTitle, SectionHeader } from '@/theme/ui';
-import { GlassCard } from '@/theme/GlassCard';
+import { Card } from '@/theme/Card';
 import { useOnboardingDraft } from '@/store/onboardingDraft';
 import type { ActivityLevel, Goal, Sex } from '@/types';
 
@@ -30,7 +30,7 @@ export default function Profile() {
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <ScreenTitle subtitle="This tunes your reference measurements and daily targets.">About You</ScreenTitle>
 
-        <GlassCard style={styles.card}>
+        <Card style={styles.card}>
           <SectionHeader>Name (optional)</SectionHeader>
           <TextInput
             value={draft.name}
@@ -71,7 +71,7 @@ export default function Profile() {
               <Pill key={a.key} label={a.label} active={draft.activityLevel === a.key} onPress={() => draft.setField('activityLevel', a.key)} />
             ))}
           </View>
-        </GlassCard>
+        </Card>
 
         <Button label="Continue" onPress={() => router.push('/onboarding/measurements')} style={{ marginTop: 24 }} />
       </ScrollView>
@@ -86,10 +86,10 @@ const styles = StyleSheet.create({
   textInput: {
     color: colors.textPrimary,
     fontSize: 16,
-    backgroundColor: colors.glassFill,
+    backgroundColor: colors.surface,
     borderRadius: 2,
     borderWidth: 1,
-    borderColor: colors.glassBorder,
+    borderColor: colors.surfaceBorder,
     paddingHorizontal: 14,
     paddingVertical: 10,
     marginBottom: 8,

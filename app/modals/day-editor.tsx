@@ -4,7 +4,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { Button, SectionHeader } from '@/theme/ui';
-import { GlassCard } from '@/theme/GlassCard';
+import { Card } from '@/theme/Card';
 import { ModalHeader } from '@/components/ModalHeader';
 import { generateId, useStore } from '@/store/useStore';
 
@@ -42,7 +42,7 @@ export default function DayEditor() {
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <ModalHeader title={existing ? 'Edit Day' : 'New Day'} />
 
-          <GlassCard>
+          <Card>
             <SectionHeader>Day Name</SectionHeader>
             <TextInput
               value={name}
@@ -51,7 +51,7 @@ export default function DayEditor() {
               placeholderTextColor={colors.textFaint}
               style={styles.input}
             />
-          </GlassCard>
+          </Card>
 
           <Button label="Save" onPress={onSave} disabled={!name.trim()} style={{ marginTop: 20 }} />
           {existing && <Button label="Delete Day" variant="ghost" onPress={onDelete} style={{ marginTop: 14 }} />}
@@ -67,10 +67,10 @@ const styles = StyleSheet.create({
   input: {
     color: colors.textPrimary,
     fontSize: 16,
-    backgroundColor: colors.glassFill,
+    backgroundColor: colors.surface,
     borderRadius: 2,
     borderWidth: 1,
-    borderColor: colors.glassBorder,
+    borderColor: colors.surfaceBorder,
     paddingHorizontal: 14,
     paddingVertical: 12,
   },

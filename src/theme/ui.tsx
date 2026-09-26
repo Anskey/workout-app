@@ -1,17 +1,10 @@
 import React from 'react';
-import {
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextStyle,
-  View,
-  ViewStyle,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { colors, gradients } from './colors';
+import { Pressable, StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
+import { colors } from './colors';
 
-export const serif = Platform.select({ ios: 'Georgia', android: 'serif', default: 'serif' });
+export const serif = 'CormorantGaramond_600SemiBold';
+export const sansMedium = 'Inter_500Medium';
+export const sansSemiBold = 'Inter_600SemiBold';
 
 export function ScreenTitle({ children, subtitle }: { children: React.ReactNode; subtitle?: string }) {
   return (
@@ -34,42 +27,33 @@ export function SectionHeader({ children, right }: { children: React.ReactNode; 
 interface ButtonProps {
   label: string;
   onPress: () => void;
-  variant?: 'gold' | 'glass' | 'ghost';
+  variant?: 'gold' | 'outline' | 'navy' | 'ghost';
   disabled?: boolean;
   style?: ViewStyle;
 }
 
 export function Button({ label, onPress, variant = 'gold', disabled, style }: ButtonProps) {
-  if (variant === 'gold') {
+  if (variant === 'ghost') {
     return (
-      <Pressable onPress={onPress} disabled={disabled} style={({ pressed }) => [{ opacity: disabled ? 0.5 : pressed ? 0.85 : 1 }, style]}>
-        <LinearGradient colors={gradients.gold} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.goldButton}>
-          <Text style={styles.goldButtonLabel}>{label}</Text>
-        </LinearGradient>
+      <Pressable onPress={onPress} disabled={disabled} style={({ pressed }) => [{ opacity: disabled ? 0.4 : pressed ? 0.6 : 1 }, style]}>
+        <Text style={styles.ghostButtonLabel}>{label}</Text>
       </Pressable>
     );
   }
-  if (variant === 'glass') {
-    return (
-      <Pressable
-        onPress={onPress}
-        disabled={disabled}
-        style={({ pressed }) => [styles.glassButton, { opacity: disabled ? 0.5 : pressed ? 0.7 : 1 }, style]}
-      >
-        <Text style={styles.glassButtonLabel}>{label}</Text>
-      </Pressable>
-    );
-  }
+  const variantStyle = variant === 'navy' ? styles.navyButton : variant === 'outline' ? styles.outlineButton : styles.goldButton;
+  const labelStyle = variant === 'navy' ? styles.navyButtonLabel : variant === 'outline' ? styles.outlineButtonLabel : styles.goldButtonLabel;
   return (
-    <Pressable onPress={onPress} disabled={disabled} style={({ pressed }) => [{ opacity: disabled ? 0.4 : pressed ? 0.6 : 1 }, style]}>
-      <Text style={styles.ghostButtonLabel}>{label}</Text>
+    <Pressable onPress={onPress} disabled={disabled} style={({ pressed }) => [{ opacity: disabled ? 0.5 : pressed ? 0.8 : 1 }, style]}>
+      <View style={variantStyle}>
+        <Text style={labelStyle}>{label}</Text>
+      </View>
     </Pressable>
   );
 }
 
 export function Badge({ label, color }: { label: string; color: string }) {
   return (
-    <View style={[styles.badge, { borderColor: color + '55', backgroundColor: color + '1E' }]}>
+    <View style={[styles.badge, { borderColor: color + '55', backgroundColor: color + '14' }]}>
       <Text style={[styles.badgeLabel, { color }]}>{label}</Text>
     </View>
   );
@@ -90,9 +74,9 @@ export function Divider() {
 const styles = StyleSheet.create({
   screenTitle: {
     fontFamily: serif,
-    fontSize: 30,
+    fontSize: 32,
     color: colors.textPrimary,
-    letterSpacing: 0.3,
+    letterSpacing: 0.2,
   } as TextStyle,
   screenSubtitle: {
     marginTop: 4,
@@ -107,76 +91,92 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   sectionHeader: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontFamily: sansSemiBold,
+    fontSize: 12.5,
     letterSpacing: 1.4,
     textTransform: 'uppercase',
     color: colors.textSecondary,
   },
   goldButton: {
-    borderRadius: 2,
+    borderRadius: 4,
     paddingVertical: 15,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: colors.gold,
   },
   goldButtonLabel: {
-    color: '#241A0E',
-    fontWeight: '700',
+    fontFamily: sansSemiBold,
+    color: colors.navyDeep,
     fontSize: 15,
-    letterSpacing: 0.4,
+    letterSpacing: 0.2,
   },
-  glassButton: {
-    borderRadius: 2,
+  navyButton: {
+    borderRadius: 4,
+    paddingVertical: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.navyDeep,
+  },
+  navyButtonLabel: {
+    fontFamily: sansSemiBold,
+    color: colors.textOnNavy,
+    fontSize: 15,
+    letterSpacing: 0.2,
+  },
+  outlineButton: {
+    borderRadius: 4,
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.glassFillStrong,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.glassBorder,
+    borderColor: colors.surfaceBorder,
   },
-  glassButtonLabel: {
-    color: colors.textPrimary,
-    fontWeight: '600',
+  outlineButtonLabel: {
+    fontFamily: sansSemiBold,
+    color: colors.navyDeep,
     fontSize: 15,
   },
   ghostButtonLabel: {
+    fontFamily: sansMedium,
     color: colors.textSecondary,
-    fontWeight: '600',
     fontSize: 14,
     textAlign: 'center',
   },
   badge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 2,
+    borderRadius: 3,
     borderWidth: 1,
     marginRight: 6,
     marginBottom: 6,
   },
   badgeLabel: {
+    fontFamily: sansSemiBold,
     fontSize: 11.5,
-    fontWeight: '600',
     letterSpacing: 0.2,
   },
   pill: {
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 2,
-    backgroundColor: colors.glassFill,
+    borderRadius: 4,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.glassBorder,
+    borderColor: colors.surfaceBorder,
     marginRight: 8,
+    marginBottom: 8,
   },
   pillActive: {
-    backgroundColor: colors.gold + '2A',
-    borderColor: colors.gold + '80',
+    backgroundColor: colors.navyDeep,
+    borderColor: colors.navyDeep,
   },
   pillLabel: {
+    fontFamily: sansMedium,
     color: colors.textSecondary,
     fontSize: 13,
-    fontWeight: '600',
   },
   pillLabelActive: {
-    color: colors.gold,
+    fontFamily: sansSemiBold,
+    color: colors.textOnNavy,
   },
 });

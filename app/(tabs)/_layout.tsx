@@ -1,7 +1,6 @@
 import React from 'react';
 import { Platform, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
-import { BlurView } from 'expo-blur';
 import { colors } from '@/theme/colors';
 import { DumbbellIcon, HomeIcon, NutritionIcon, RulerIcon } from '@/components/Icons';
 
@@ -10,12 +9,11 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.gold,
+        tabBarActiveTintColor: colors.navyDeep,
         tabBarInactiveTintColor: colors.textFaint,
         tabBarShowLabel: true,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600', marginBottom: Platform.OS === 'android' ? 6 : 0 },
+        tabBarLabelStyle: { fontSize: 11, fontFamily: 'Inter_600SemiBold', marginBottom: Platform.OS === 'android' ? 6 : 0 },
         tabBarStyle: styles.tabBar,
-        tabBarBackground: () => <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />,
       }}
     >
       <Tabs.Screen name="home" options={{ title: 'Home', tabBarIcon: ({ color, size }) => <HomeIcon color={color as string} size={size} /> }} />
@@ -37,11 +35,10 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    position: 'absolute',
-    borderTopWidth: 0,
-    backgroundColor: 'transparent',
-    elevation: 0,
-    height: Platform.OS === 'android' ? 68 : 84,
+    backgroundColor: colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: colors.divider,
+    height: Platform.OS === 'android' ? 64 : 84,
     paddingTop: 8,
   },
 });

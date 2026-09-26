@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { Button, ScreenTitle, SectionHeader } from '@/theme/ui';
-import { GlassCard } from '@/theme/GlassCard';
+import { Card } from '@/theme/Card';
 import { ComparisonBar } from '@/components/ComparisonBar';
 import { useOnboardingDraft } from '@/store/onboardingDraft';
 import { useStore } from '@/store/useStore';
@@ -40,16 +40,16 @@ export default function Results() {
         </ScreenTitle>
 
         {comparisons.length === 0 ? (
-          <GlassCard>
+          <Card>
             <Text style={styles.empty}>No measurements entered yet — you can always add them later from the Measurements tab.</Text>
-          </GlassCard>
+          </Card>
         ) : (
-          <GlassCard>
+          <Card>
             <SectionHeader>vs. Reference</SectionHeader>
             {comparisons.map((c) => (
               <ComparisonBar key={c.key} comparison={c} />
             ))}
-          </GlassCard>
+          </Card>
         )}
 
         <Button label="Get Started" onPress={onFinish} style={{ marginTop: 24 }} />

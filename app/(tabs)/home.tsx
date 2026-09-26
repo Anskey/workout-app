@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { Badge, Button, ScreenTitle, SectionHeader, serif } from '@/theme/ui';
-import { GlassCard } from '@/theme/GlassCard';
+import { Card } from '@/theme/Card';
 import { StatTile } from '@/components/StatTile';
 import { SparkleIcon, ChevronRightIcon } from '@/components/Icons';
 import { useStore, useActiveProgram } from '@/store/useStore';
@@ -42,29 +42,29 @@ export default function Home() {
         </ScreenTitle>
 
         {reminder.due && (
-          <GlassCard style={styles.reminderCard}>
+          <Card style={styles.reminderCard}>
             <View style={{ flex: 1 }}>
               <Text style={styles.reminderTitle}>
                 {reminder.daysSinceLast === null ? 'Log your first measurements' : `${reminder.daysSinceLast} days since your last measurements`}
               </Text>
               <Text style={styles.reminderCopy}>Weekly check-ins keep your suggestions accurate.</Text>
             </View>
-            <Button label="Log Now" variant="glass" onPress={() => router.push('/modals/measurement-log')} />
-          </GlassCard>
+            <Button label="Log Now" variant="outline" onPress={() => router.push('/modals/measurement-log')} />
+          </Card>
         )}
 
         <SectionHeader>Today</SectionHeader>
-        <GlassCard>
+        <Card>
           <View style={styles.statsRow}>
             <StatTile label="Calories" value={todayLog?.calories ? String(todayLog.calories) : '—'} unit="kcal" />
             <StatTile label="Protein" value={todayLog?.proteinG ? String(todayLog.proteinG) : '—'} unit="g" accent={colors.gold} />
             <StatTile label="Weight" value={todayLog?.weightKg ? String(todayLog.weightKg) : '—'} unit="kg" />
           </View>
-          <Button label={todayLog ? 'Update Today' : 'Log Today'} variant="glass" onPress={() => router.push('/modals/nutrition-log')} style={{ marginTop: 14 }} />
-        </GlassCard>
+          <Button label={todayLog ? 'Update Today' : 'Log Today'} variant="outline" onPress={() => router.push('/modals/nutrition-log')} style={{ marginTop: 14 }} />
+        </Card>
 
         <SectionHeader>Weekly Suggestions</SectionHeader>
-        <GlassCard>
+        <Card>
           {nutritionSuggestion.messages.slice(0, 1).map((m, i) => (
             <SuggestionRow key={`n-${i}`} text={m} />
           ))}
@@ -81,7 +81,7 @@ export default function Home() {
               />
             ))
           )}
-        </GlassCard>
+        </Card>
 
         <SectionHeader
           right={
@@ -93,7 +93,7 @@ export default function Home() {
           Your Program
         </SectionHeader>
         <Pressable onPress={() => router.push('/(tabs)/program')}>
-          <GlassCard>
+          <Card>
             <Text style={styles.programName}>{activeProgram?.name ?? 'No program yet'}</Text>
             {firstDay && (
               <View style={styles.dayPreviewRow}>
@@ -103,7 +103,7 @@ export default function Home() {
                 <ChevronRightIcon color={colors.textFaint} />
               </View>
             )}
-          </GlassCard>
+          </Card>
         </Pressable>
       </ScrollView>
     </SafeAreaView>

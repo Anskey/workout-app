@@ -44,10 +44,10 @@ const styles = StyleSheet.create({
   inputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.glassFill,
+    backgroundColor: colors.surface,
     borderRadius: 2,
     borderWidth: 1,
-    borderColor: colors.glassBorder,
+    borderColor: colors.surfaceBorder,
     paddingHorizontal: 12,
     minWidth: 100,
   },

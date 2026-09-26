@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { Button, SectionHeader, serif } from '@/theme/ui';
-import { GlassCard } from '@/theme/GlassCard';
+import { Card } from '@/theme/Card';
 import { ModalHeader } from '@/components/ModalHeader';
 import { CheckIcon, TrashIcon } from '@/components/Icons';
 import { useStore } from '@/store/useStore';
@@ -47,7 +47,7 @@ export default function ProgramPicker() {
       <ScrollView contentContainerStyle={styles.scroll}>
         <ModalHeader title="Programs" />
 
-        <GlassCard style={{ marginBottom: 18 }}>
+        <Card style={{ marginBottom: 18 }}>
           {programs.map((p, i) => (
             <View key={p.id} style={[styles.row, i !== programs.length - 1 && styles.rowBorder]}>
               <Pressable style={{ flex: 1 }} onPress={() => onSelect(p.id)}>
@@ -60,10 +60,10 @@ export default function ProgramPicker() {
               </Pressable>
             </View>
           ))}
-        </GlassCard>
+        </Card>
 
         {creating ? (
-          <GlassCard>
+          <Card>
             <SectionHeader>New Program Name</SectionHeader>
             <TextInput
               value={newName}
@@ -74,9 +74,9 @@ export default function ProgramPicker() {
               autoFocus
             />
             <Button label="Create" onPress={onCreate} disabled={!newName.trim()} style={{ marginTop: 14 }} />
-          </GlassCard>
+          </Card>
         ) : (
-          <Button label="New Program" variant="glass" onPress={() => setCreating(true)} />
+          <Button label="New Program" variant="outline" onPress={() => setCreating(true)} />
         )}
       </ScrollView>
     </SafeAreaView>
@@ -93,10 +93,10 @@ const styles = StyleSheet.create({
   input: {
     color: colors.textPrimary,
     fontSize: 16,
-    backgroundColor: colors.glassFill,
+    backgroundColor: colors.surface,
     borderRadius: 2,
     borderWidth: 1,
-    borderColor: colors.glassBorder,
+    borderColor: colors.surfaceBorder,
     paddingHorizontal: 14,
     paddingVertical: 12,
   },

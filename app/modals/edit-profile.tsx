@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { Button, Pill, SectionHeader } from '@/theme/ui';
-import { GlassCard } from '@/theme/GlassCard';
+import { Card } from '@/theme/Card';
 import { ModalHeader } from '@/components/ModalHeader';
 import { useStore } from '@/store/useStore';
 import type { ActivityLevel, Goal, Sex } from '@/types';
@@ -43,7 +43,7 @@ export default function EditProfile() {
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <ModalHeader title="Profile & Goals" />
 
-        <GlassCard>
+        <Card>
           <SectionHeader>Name</SectionHeader>
           <TextInput value={name} onChangeText={setName} placeholderTextColor={colors.textFaint} style={styles.input} />
 
@@ -78,7 +78,7 @@ export default function EditProfile() {
               <Pill key={a.key} label={a.label} active={activityLevel === a.key} onPress={() => setActivityLevel(a.key)} />
             ))}
           </View>
-        </GlassCard>
+        </Card>
 
         <Button label="Save" onPress={onSave} style={{ marginTop: 20 }} />
       </ScrollView>
@@ -92,10 +92,10 @@ const styles = StyleSheet.create({
   input: {
     color: colors.textPrimary,
     fontSize: 16,
-    backgroundColor: colors.glassFill,
+    backgroundColor: colors.surface,
     borderRadius: 2,
     borderWidth: 1,
-    borderColor: colors.glassBorder,
+    borderColor: colors.surfaceBorder,
     paddingHorizontal: 14,
     paddingVertical: 10,
     marginBottom: 8,

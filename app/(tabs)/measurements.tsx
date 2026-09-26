@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { Button, ScreenTitle, SectionHeader } from '@/theme/ui';
-import { GlassCard } from '@/theme/GlassCard';
+import { Card } from '@/theme/Card';
 import { ComparisonBar } from '@/components/ComparisonBar';
 import { ChevronRightIcon } from '@/components/Icons';
 import { useStore } from '@/store/useStore';
@@ -36,17 +36,17 @@ export default function Measurements() {
         {latest && comparisons.length > 0 && (
           <>
             <SectionHeader>Latest vs. Reference</SectionHeader>
-            <GlassCard style={{ marginBottom: 20 }}>
+            <Card style={{ marginBottom: 20 }}>
               <Text style={styles.dateLabel}>{formatLongDate(latest.date)}</Text>
               {comparisons.map((c) => (
                 <ComparisonBar key={c.key} comparison={c} />
               ))}
-            </GlassCard>
+            </Card>
           </>
         )}
 
         <SectionHeader>History</SectionHeader>
-        <GlassCard>
+        <Card>
           {sorted.length === 0 ? (
             <Text style={styles.emptyText}>No entries yet.</Text>
           ) : (
@@ -68,7 +68,7 @@ export default function Measurements() {
               </Pressable>
             ))
           )}
-        </GlassCard>
+        </Card>
       </ScrollView>
     </SafeAreaView>
   );

@@ -4,7 +4,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { Button, SectionHeader } from '@/theme/ui';
-import { GlassCard } from '@/theme/GlassCard';
+import { Card } from '@/theme/Card';
 import { ModalHeader } from '@/components/ModalHeader';
 import { MeasurementField } from '@/components/MeasurementField';
 import { useStore } from '@/store/useStore';
@@ -52,12 +52,12 @@ export default function NutritionLog() {
           <ModalHeader title="Daily Log" />
           <Text style={styles.dateLabel}>{formatLongDate(date)}</Text>
 
-          <GlassCard>
+          <Card>
             <SectionHeader>Today</SectionHeader>
             <MeasurementField label="Calories" unit="kcal" value={calories} onChangeText={setCalories} />
             <MeasurementField label="Protein" unit="g" value={proteinG} onChangeText={setProteinG} />
             <MeasurementField label="Weight" unit="kg" value={weightKg} onChangeText={setWeightKg} />
-          </GlassCard>
+          </Card>
 
           <Button label="Save" onPress={onSave} style={{ marginTop: 20 }} />
           {existing && <Button label="Delete Entry" variant="ghost" onPress={onDelete} style={{ marginTop: 14 }} />}

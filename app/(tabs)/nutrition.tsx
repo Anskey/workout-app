@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { Button, ScreenTitle, SectionHeader } from '@/theme/ui';
-import { GlassCard } from '@/theme/GlassCard';
+import { Card } from '@/theme/Card';
 import { StatTile } from '@/components/StatTile';
 import { SparkleIcon, ChevronRightIcon } from '@/components/Icons';
 import { useStore } from '@/store/useStore';
@@ -27,17 +27,17 @@ export default function Nutrition() {
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <ScreenTitle subtitle="Daily calories, protein, and weight — with weekly-trend suggestions.">Nutrition</ScreenTitle>
 
-        <GlassCard style={{ marginBottom: 18 }}>
+        <Card style={{ marginBottom: 18 }}>
           <View style={styles.statsRow}>
             <StatTile label="Calories" value={todayLog?.calories ? String(todayLog.calories) : '—'} unit="kcal" />
             <StatTile label="Protein" value={todayLog?.proteinG ? String(todayLog.proteinG) : '—'} unit="g" accent={colors.gold} />
             <StatTile label="Weight" value={todayLog?.weightKg ? String(todayLog.weightKg) : '—'} unit="kg" />
           </View>
           <Button label={todayLog ? 'Update Today' : 'Log Today'} onPress={() => router.push('/modals/nutrition-log')} style={{ marginTop: 16 }} />
-        </GlassCard>
+        </Card>
 
         <SectionHeader>Suggestions</SectionHeader>
-        <GlassCard style={{ marginBottom: 18 }}>
+        <Card style={{ marginBottom: 18 }}>
           {suggestion.messages.map((m, i) => (
             <View key={i} style={[styles.suggestionRow, i !== suggestion.messages.length - 1 && styles.suggestionRowBorder]}>
               <SparkleIcon color={colors.gold} size={15} />
@@ -47,10 +47,10 @@ export default function Nutrition() {
           {suggestion.proteinTargetG && (
             <Text style={styles.targetText}>Protein target: ~{suggestion.proteinTargetG}g/day (≈2.0g/kg bodyweight)</Text>
           )}
-        </GlassCard>
+        </Card>
 
         <SectionHeader>History</SectionHeader>
-        <GlassCard>
+        <Card>
           {sorted.length === 0 ? (
             <Text style={styles.emptyText}>No entries yet.</Text>
           ) : (
@@ -71,7 +71,7 @@ export default function Nutrition() {
               </Pressable>
             ))
           )}
-        </GlassCard>
+        </Card>
       </ScrollView>
     </SafeAreaView>
   );

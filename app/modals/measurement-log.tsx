@@ -4,7 +4,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { Button, SectionHeader } from '@/theme/ui';
-import { GlassCard } from '@/theme/GlassCard';
+import { Card } from '@/theme/Card';
 import { ModalHeader } from '@/components/ModalHeader';
 import { MeasurementField } from '@/components/MeasurementField';
 import { useStore } from '@/store/useStore';
@@ -74,12 +74,12 @@ export default function MeasurementLog() {
           <ModalHeader title="Measurements" />
           <Text style={styles.dateLabel}>{formatLongDate(date)}</Text>
 
-          <GlassCard>
+          <Card>
             <SectionHeader>Values</SectionHeader>
             {FIELDS.map((f) => (
               <MeasurementField key={f.key} label={f.label} unit={f.unit} value={values[f.key] ?? ''} onChangeText={(t) => onChange(f.key, t)} />
             ))}
-          </GlassCard>
+          </Card>
 
           <Button label="Save" onPress={onSave} style={{ marginTop: 20 }} />
           {existing && <Button label="Delete Entry" variant="ghost" onPress={onDelete} style={{ marginTop: 14 }} />}

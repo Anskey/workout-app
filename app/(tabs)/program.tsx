@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { Badge, Button, ScreenTitle, serif } from '@/theme/ui';
-import { GlassCard } from '@/theme/GlassCard';
+import { Card } from '@/theme/Card';
 import { ChevronRightIcon, PlusIcon } from '@/components/Icons';
 import { useActiveProgram, useStore } from '@/store/useStore';
 import { getMuscleColor } from '@/data/muscleGroups';
@@ -35,10 +35,10 @@ export default function Program() {
         </View>
 
         <Pressable onPress={() => router.push('/modals/program-picker')} style={{ marginBottom: 18 }}>
-          <GlassCard style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }} padded>
+          <Card style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }} padded>
             <Text style={styles.programName}>{program.name}</Text>
             <ChevronRightIcon color={colors.textFaint} />
-          </GlassCard>
+          </Card>
         </Pressable>
 
         {program.days.map((day) => (
@@ -47,7 +47,7 @@ export default function Program() {
 
         <Button
           label="Add Workout Day"
-          variant="glass"
+          variant="outline"
           onPress={() => router.push({ pathname: '/modals/day-editor', params: { programId: program.id } })}
           style={{ marginTop: 6 }}
         />
@@ -68,7 +68,7 @@ function DayCard({
   onToggle: () => void;
 }) {
   return (
-    <GlassCard style={styles.dayCard}>
+    <Card style={styles.dayCard}>
       <Pressable onPress={onToggle} style={styles.dayHeaderRow}>
         <View style={{ flex: 1 }}>
           <Text style={styles.dayName}>{day.name}</Text>
@@ -96,7 +96,7 @@ function DayCard({
           </Pressable>
         </View>
       )}
-    </GlassCard>
+    </Card>
   );
 }
 

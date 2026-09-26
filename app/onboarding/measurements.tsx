@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button, ScreenTitle, SectionHeader } from '@/theme/ui';
-import { GlassCard } from '@/theme/GlassCard';
+import { Card } from '@/theme/Card';
 import { MeasurementField } from '@/components/MeasurementField';
 import { useOnboardingDraft } from '@/store/onboardingDraft';
 import type { MeasurementKey } from '@/types';
@@ -38,7 +38,7 @@ export default function Measurements() {
           Starting Measurements
         </ScreenTitle>
 
-        <GlassCard>
+        <Card>
           <SectionHeader>This Week</SectionHeader>
           {FIELDS.map((f) => (
             <MeasurementField
@@ -49,7 +49,7 @@ export default function Measurements() {
               onChangeText={(t) => onChange(f.key, t)}
             />
           ))}
-        </GlassCard>
+        </Card>
 
         <Button label="See Comparison" onPress={() => router.push('/onboarding/results')} style={{ marginTop: 24 }} />
       </ScrollView>
