@@ -32,3 +32,8 @@ export const CATEGORY_COLORS: Record<Category, string> = {
 export function getMuscleColor(muscle: MuscleGroup): string {
   return CATEGORY_COLORS[CATEGORY[muscle]];
 }
+
+export const ALL_MUSCLE_GROUPS: MuscleGroup[] = [
+  'Chest', 'Back Width', 'Back Thickness', 'Shoulders', 'Rear Delts', 'Biceps', 'Triceps', 'Forearms',
+  'Quads', 'Hamstrings', 'Glutes', 'Calves', 'Adductors', 'Abs', 'Neck', 'Traps',
+];

@@ -67,6 +67,8 @@ export default function RootLayout() {
             <Stack.Screen name="modals/measurement-log" options={{ presentation: 'modal' }} />
             <Stack.Screen name="modals/nutrition-log" options={{ presentation: 'modal' }} />
             <Stack.Screen name="modals/exercise-editor" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="modals/exercise-swap" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="modals/session-log" options={{ presentation: 'modal' }} />
             <Stack.Screen name="modals/day-editor" options={{ presentation: 'modal' }} />
             <Stack.Screen name="modals/program-picker" options={{ presentation: 'modal' }} />
             <Stack.Screen name="modals/edit-profile" options={{ presentation: 'modal' }} />

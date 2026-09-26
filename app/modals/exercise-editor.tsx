@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
@@ -8,12 +8,8 @@ import { Card } from '@/theme/Card';
 import { ModalHeader } from '@/components/ModalHeader';
 import { MeasurementField } from '@/components/MeasurementField';
 import { generateId, useStore } from '@/store/useStore';
-import type { MuscleGroup } from '@/types';
-
-const ALL_MUSCLE_GROUPS: MuscleGroup[] = [
-  'Chest', 'Back Width', 'Back Thickness', 'Shoulders', 'Rear Delts', 'Biceps', 'Triceps', 'Forearms',
-  'Quads', 'Hamstrings', 'Glutes', 'Calves', 'Adductors', 'Abs', 'Neck', 'Traps',
-];
+import { ALL_MUSCLE_GROUPS } from '@/data/muscleGroups';
+import type { MuscleGroup, WeekPrescription } from '@/types';
 
 export default function ExerciseEditor() {
   const { programId, dayId, exerciseId } = useLocalSearchParams<{ programId: string; dayId: string; exerciseId?: string }>();
@@ -25,14 +21,19 @@ export default function ExerciseEditor() {
   const day = program?.days.find((d) => d.id === dayId);
   const existing = useMemo(() => day?.exercises.find((e) => e.id === exerciseId), [day, exerciseId]);
 
+  const currentWeek = program?.currentWeek ?? 1;
+  const hasWeeklyProgression = !!existing?.weeklyProgression?.length;
+  const weekEntry = existing?.weeklyProgression?.find((w) => w.week === currentWeek);
+  const source = weekEntry ?? existing;
+
   const [name, setName] = useState(existing?.name ?? '');
   const [muscles, setMuscles] = useState<MuscleGroup[]>(existing?.muscleGroups ?? []);
-  const [warmupSets, setWarmupSets] = useState(existing?.warmupSets ?? '');
-  const [workingSets, setWorkingSets] = useState(existing?.workingSets ?? '');
-  const [reps, setReps] = useState(existing?.reps ?? '');
-  const [earlyRPE, setEarlyRPE] = useState(existing?.earlyRPE ?? '');
-  const [lastRPE, setLastRPE] = useState(existing?.lastRPE ?? '');
-  const [rest, setRest] = useState(existing?.rest ?? '');
+  const [warmupSets, setWarmupSets] = useState(source?.warmupSets ?? '');
+  const [workingSets, setWorkingSets] = useState(source?.workingSets ?? '');
+  const [reps, setReps] = useState(source?.reps ?? '');
+  const [earlyRPE, setEarlyRPE] = useState(source?.earlyRPE ?? '');
+  const [lastRPE, setLastRPE] = useState(source?.lastRPE ?? '');
+  const [rest, setRest] = useState(source?.rest ?? '');
   const [substitutions, setSubstitutions] = useState(existing?.substitutions?.join(', ') ?? '');
 
   const toggleMuscle = (m: MuscleGroup) =>
@@ -40,18 +41,32 @@ export default function ExerciseEditor() {
 
   const onSave = () => {
     if (!name.trim() || !programId || !dayId) return;
-    upsertExercise(programId, dayId, {
-      id: existing?.id ?? generateId(),
-      name: name.trim(),
-      muscleGroups: muscles,
+
+    const prescription = {
       warmupSets: warmupSets.trim() || undefined,
       workingSets: workingSets.trim() || '2',
       reps: reps.trim() || '8-12',
       earlyRPE: earlyRPE.trim() || undefined,
       lastRPE: lastRPE.trim() || undefined,
       rest: rest.trim() || undefined,
+    };
+
+    let weeklyProgression: WeekPrescription[] | undefined = existing?.weeklyProgression;
+    if (hasWeeklyProgression) {
+      const already = weeklyProgression!.some((w) => w.week === currentWeek);
+      weeklyProgression = already
+        ? weeklyProgression!.map((w) => (w.week === currentWeek ? { week: currentWeek, ...prescription } : w))
+        : [...weeklyProgression!, { week: currentWeek, ...prescription }].sort((a, b) => a.week - b.week);
+    }
+
+    upsertExercise(programId, dayId, {
+      id: existing?.id ?? generateId(),
+      name: name.trim(),
+      muscleGroups: muscles,
+      ...(hasWeeklyProgression ? { warmupSets: existing?.warmupSets, workingSets: existing?.workingSets ?? '2', reps: existing?.reps ?? '8-12', earlyRPE: existing?.earlyRPE, lastRPE: existing?.lastRPE, rest: existing?.rest } : prescription),
       substitutions: substitutions.split(',').map((s) => s.trim()).filter(Boolean),
       isWeakPointSlot: existing?.isWeakPointSlot,
+      weeklyProgression,
     });
     router.back();
   };
@@ -89,7 +104,13 @@ export default function ExerciseEditor() {
           </Card>
 
           <Card style={{ marginBottom: 16 }}>
-            <SectionHeader>Prescription</SectionHeader>
+            <SectionHeader>{hasWeeklyProgression ? `Prescription — Week ${currentWeek}` : 'Prescription'}</SectionHeader>
+            {hasWeeklyProgression && (
+              <Text style={styles.weekHint}>
+                This exercise has its own week-by-week plan. You're editing Week {currentWeek} of {day?.blockLabel ?? 'this block'} —
+                switch weeks from the Program tab to edit a different one.
+              </Text>
+            )}
             <MeasurementField label="Warm-up Sets" unit="" value={warmupSets} onChangeText={setWarmupSets} placeholder="1-2" />
             <MeasurementField label="Working Sets" unit="" value={workingSets} onChangeText={setWorkingSets} placeholder="2" />
             <MeasurementField label="Reps" unit="" value={reps} onChangeText={setReps} placeholder="8-12" />
@@ -133,4 +154,5 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   pillWrap: { flexDirection: 'row', flexWrap: 'wrap' },
+  weekHint: { color: colors.textFaint, fontSize: 12, lineHeight: 17, marginBottom: 10 },
 });

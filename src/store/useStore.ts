@@ -9,6 +9,7 @@ import type {
   UserProfile,
   WorkoutDay,
   WorkoutProgram,
+  WorkoutSessionLog,
 } from '@/types';
 import { createSeedProgram } from '@/data/seedProgram';
 
@@ -31,6 +32,7 @@ interface AppState {
   activeProgramId: string;
   measurements: MeasurementEntry[];
   nutritionLogs: NutritionEntry[];
+  sessionLogs: WorkoutSessionLog[];
 
   setProfile: (profile: Partial<UserProfile>) => void;
   completeOnboarding: (profile: UserProfile, firstMeasurement: Omit<MeasurementEntry, 'id'>) => void;
@@ -43,6 +45,7 @@ interface AppState {
   upsertDay: (programId: string, day: WorkoutDay) => void;
   deleteDay: (programId: string, dayId: string) => void;
   reorderDays: (programId: string, days: WorkoutDay[]) => void;
+  setProgramWeek: (programId: string, block: number, week: number) => void;
 
   upsertExercise: (programId: string, dayId: string, exercise: Exercise) => void;
   deleteExercise: (programId: string, dayId: string, exerciseId: string) => void;
@@ -53,6 +56,9 @@ interface AppState {
 
   upsertNutritionLog: (entry: Omit<NutritionEntry, 'id'> & { id?: string }) => void;
   deleteNutritionLog: (id: string) => void;
+
+  upsertSessionLog: (entry: Omit<WorkoutSessionLog, 'id'> & { id?: string }) => void;
+  deleteSessionLog: (id: string) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -63,6 +69,7 @@ export const useStore = create<AppState>()(
       activeProgramId: 'seed-program-ppl',
       measurements: [],
       nutritionLogs: [],
+      sessionLogs: [],
 
       setProfile: (partial) => set((s) => ({ profile: { ...s.profile, ...partial } })),
 
@@ -103,6 +110,10 @@ export const useStore = create<AppState>()(
         })),
       reorderDays: (programId, days) =>
         set((s) => ({ programs: s.programs.map((p) => (p.id === programId ? { ...p, days } : p)) })),
+      setProgramWeek: (programId, block, week) =>
+        set((s) => ({
+          programs: s.programs.map((p) => (p.id === programId ? { ...p, currentBlock: block, currentWeek: week } : p)),
+        })),
 
       upsertExercise: (programId, dayId, exercise) =>
         set((s) => ({
@@ -153,10 +164,40 @@ export const useStore = create<AppState>()(
           return { nutritionLogs: [...s.nutritionLogs, { ...entry, id: generateId() } as NutritionEntry] };
         }),
       deleteNutritionLog: (id) => set((s) => ({ nutritionLogs: s.nutritionLogs.filter((n) => n.id !== id) })),
+
+      upsertSessionLog: (entry) =>
+        set((s) => {
+          if (entry.id) {
+            return {
+              sessionLogs: s.sessionLogs.map((l) => (l.id === entry.id ? ({ ...l, ...entry, id: entry.id } as WorkoutSessionLog) : l)),
+            };
+          }
+          const existing = s.sessionLogs.find((l) => l.programId === entry.programId && l.dayId === entry.dayId && l.date === entry.date);
+          if (existing) {
+            return {
+              sessionLogs: s.sessionLogs.map((l) => (l.id === existing.id ? { ...l, ...entry, id: existing.id } : l)),
+            };
+          }
+          return { sessionLogs: [...s.sessionLogs, { ...entry, id: generateId() } as WorkoutSessionLog] };
+        }),
+      deleteSessionLog: (id) => set((s) => ({ sessionLogs: s.sessionLogs.filter((l) => l.id !== id) })),
     }),
     {
       name: 'workout-app-storage',
       storage: createJSONStorage(() => AsyncStorage),
+      version: 2,
+      migrate: (persistedState: unknown, version: number) => {
+        const state = (persistedState ?? {}) as { programs?: WorkoutProgram[]; [key: string]: unknown };
+        if (version < 2) {
+          const seed = createSeedProgram();
+          const programs = Array.isArray(state.programs) ? [...state.programs] : [];
+          const idx = programs.findIndex((p) => p.id === 'seed-program-ppl');
+          if (idx >= 0) programs[idx] = seed;
+          else programs.unshift(seed);
+          return { ...state, programs, sessionLogs: Array.isArray((state as any).sessionLogs) ? (state as any).sessionLogs : [] };
+        }
+        return state;
+      },
     }
   )
 );

@@ -30,6 +30,16 @@ export type MuscleGroup =
   | 'Adductors'
   | 'Weak Point';
 
+export interface WeekPrescription {
+  week: number;
+  warmupSets?: string;
+  workingSets: string;
+  reps: string;
+  earlyRPE?: string;
+  lastRPE?: string;
+  rest?: string;
+}
+
 export interface Exercise {
   id: string;
   name: string;
@@ -42,12 +52,17 @@ export interface Exercise {
   rest?: string;
   substitutions?: string[];
   isWeakPointSlot?: boolean;
+  /** Optional week-by-week prescriptions (1-based, relative to the day's block). Falls back to the base fields above when absent or missing a given week. */
+  weeklyProgression?: WeekPrescription[];
 }
 
 export interface WorkoutDay {
   id: string;
   name: string;
   exercises: Exercise[];
+  /** Which training block this day belongs to, for programs with periodized blocks (e.g. a "Climb" and a "Grind" phase). */
+  block?: number;
+  blockLabel?: string;
 }
 
 export interface WorkoutProgram {
@@ -55,6 +70,9 @@ export interface WorkoutProgram {
   name: string;
   createdAt: string;
   days: WorkoutDay[];
+  /** Which block/week is currently being viewed, for programs whose days carry weeklyProgression. */
+  currentBlock?: number;
+  currentWeek?: number;
 }
 
 export type MeasurementKey =
@@ -80,4 +98,24 @@ export interface NutritionEntry {
   calories?: number;
   proteinG?: number;
   weightKg?: number;
+}
+
+export interface SetLog {
+  weightKg?: number;
+  reps?: number;
+}
+
+export interface ExerciseSessionLog {
+  exerciseId: string;
+  exerciseName: string;
+  sets: SetLog[];
+}
+
+export interface WorkoutSessionLog {
+  id: string;
+  date: string;
+  programId: string;
+  dayId: string;
+  dayName: string;
+  exerciseLogs: ExerciseSessionLog[];
 }

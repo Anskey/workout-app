@@ -1,4 +1,5 @@
 import type { Exercise, WorkoutDay, WorkoutProgram } from '@/types';
+import { PROGRESSION } from './programProgression';
 
 let counter = 0;
 function ex(partial: Omit<Exercise, 'id'>): Exercise {
@@ -21,17 +22,31 @@ function weakSlot(n: 1 | 2): Exercise {
   });
 }
 
+/** Attaches the extracted 5-week progression to each exercise in a day, by position. */
+function attachProgression(day: WorkoutDay, progressionKey: string): WorkoutDay {
+  const weeks = PROGRESSION[progressionKey];
+  if (!weeks) return day;
+  day.exercises.forEach((exercise, i) => {
+    if (weeks[i]) exercise.weeklyProgression = weeks[i];
+  });
+  return day;
+}
+
 /**
  * Seed data extracted from the user's own "Pure Bodybuilding Program - Phase 2"
- * PDF (Week 1 / intro-deload week prescriptions). This is a Push/Pull/Legs +
- * Arms split run across an 8-workout cycle. Numbers and exercise names were
- * parsed from the PDF's table layout — double check against the source PDF
- * and adjust freely; everything here is fully editable in the app.
+ * PDF: a Push/Pull/Legs + Arms split run across an 8-workout cycle, over two
+ * 5-week blocks (Block 1: Climb Phase, Block 2: Grind Phase) with a different
+ * exercise selection per block and a week-by-week sets/reps/RPE progression.
+ * Numbers and exercise names were parsed from the PDF's table layout — double
+ * check against the source PDF and adjust freely; everything here is fully
+ * editable in the app.
  */
-function buildDays(): WorkoutDay[] {
+function buildBlock1Days(): WorkoutDay[] {
   const pull1: WorkoutDay = {
-    id: 'seed-day-pull1',
+    id: 'seed-day-pull1-b1',
     name: 'Pull #1',
+    block: 1,
+    blockLabel: 'Block 1: 5-Week Climb Phase',
     exercises: [
       ex({
         name: 'Wide-Grip Pull-Up',
@@ -73,8 +88,10 @@ function buildDays(): WorkoutDay[] {
   };
 
   const push1: WorkoutDay = {
-    id: 'seed-day-push1',
+    id: 'seed-day-push1-b1',
     name: 'Push #1',
+    block: 1,
+    blockLabel: 'Block 1: 5-Week Climb Phase',
     exercises: [
       ex({
         name: 'DB Lateral Raise',
@@ -116,8 +133,10 @@ function buildDays(): WorkoutDay[] {
   };
 
   const legs1: WorkoutDay = {
-    id: 'seed-day-legs1',
+    id: 'seed-day-legs1-b1',
     name: 'Legs #1',
+    block: 1,
+    blockLabel: 'Block 1: 5-Week Climb Phase',
     exercises: [
       ex({
         name: 'Seated Leg Curl',
@@ -159,8 +178,10 @@ function buildDays(): WorkoutDay[] {
   };
 
   const arms1: WorkoutDay = {
-    id: 'seed-day-arms1',
+    id: 'seed-day-arms1-b1',
     name: 'Arms & Weak Points #1',
+    block: 1,
+    blockLabel: 'Block 1: 5-Week Climb Phase',
     exercises: [
       weakSlot(1),
       weakSlot(2),
@@ -198,8 +219,10 @@ function buildDays(): WorkoutDay[] {
   };
 
   const pull2: WorkoutDay = {
-    id: 'seed-day-pull2',
+    id: 'seed-day-pull2-b1',
     name: 'Pull #2',
+    block: 1,
+    blockLabel: 'Block 1: 5-Week Climb Phase',
     exercises: [
       ex({
         name: 'Smith Machine Deficit Row',
@@ -241,8 +264,10 @@ function buildDays(): WorkoutDay[] {
   };
 
   const push2: WorkoutDay = {
-    id: 'seed-day-push2',
+    id: 'seed-day-push2-b1',
     name: 'Push #2',
+    block: 1,
+    blockLabel: 'Block 1: 5-Week Climb Phase',
     exercises: [
       ex({
         name: 'Cuffed Lateral Raise',
@@ -278,8 +303,10 @@ function buildDays(): WorkoutDay[] {
   };
 
   const legs2: WorkoutDay = {
-    id: 'seed-day-legs2',
+    id: 'seed-day-legs2-b1',
     name: 'Legs #2',
+    block: 1,
+    blockLabel: 'Block 1: 5-Week Climb Phase',
     exercises: [
       ex({
         name: 'Barbell RDL',
@@ -321,8 +348,10 @@ function buildDays(): WorkoutDay[] {
   };
 
   const arms2: WorkoutDay = {
-    id: 'seed-day-arms2',
+    id: 'seed-day-arms2-b1',
     name: 'Arms & Weak Points #2',
+    block: 1,
+    blockLabel: 'Block 1: 5-Week Climb Phase',
     exercises: [
       weakSlot(1),
       weakSlot(2),
@@ -359,7 +388,369 @@ function buildDays(): WorkoutDay[] {
     ],
   };
 
-  return [pull1, push1, legs1, arms1, pull2, push2, legs2, arms2];
+  return [
+    attachProgression(pull1, 'pull1_block1'),
+    attachProgression(push1, 'push1_block1'),
+    attachProgression(legs1, 'legs1_block1'),
+    attachProgression(arms1, 'arms1_block1'),
+    attachProgression(pull2, 'pull2_block1'),
+    attachProgression(push2, 'push2_block1'),
+    attachProgression(legs2, 'legs2_block1'),
+    attachProgression(arms2, 'arms2_block1'),
+  ];
+}
+
+function buildBlock2Days(): WorkoutDay[] {
+  const pull1: WorkoutDay = {
+    id: 'seed-day-pull1-b2',
+    name: 'Pull #1',
+    block: 2,
+    blockLabel: 'Block 2: 5-Week Grind Phase',
+    exercises: [
+      ex({
+        name: 'Wide-Grip Lat Pulldown',
+        muscleGroups: ['Back Width'],
+        warmupSets: '2-3', workingSets: '2', reps: '10-12', earlyRPE: '~7', lastRPE: '~9', rest: '~2-3 min',
+        substitutions: ['Dual-Handle Lat Pulldown'],
+      }),
+      ex({
+        name: 'Elbows-Out Cable Row',
+        muscleGroups: ['Back Thickness'],
+        warmupSets: '2', workingSets: '2', reps: '10-12', earlyRPE: '~7', lastRPE: '~9', rest: '~2-3 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Straight-Bar Lat Pulldown',
+        muscleGroups: ['Back Width'],
+        warmupSets: '1', workingSets: '2', reps: '10-12', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Cable Reverse Flye',
+        muscleGroups: ['Rear Delts'],
+        warmupSets: '1', workingSets: '2', reps: '12-15', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: ['Seated Reverse Pec Deck'],
+      }),
+      ex({
+        name: 'Bayesian High Cable Curl',
+        muscleGroups: ['Biceps'],
+        warmupSets: '1', workingSets: '2', reps: '10-12', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Cable Crunch',
+        muscleGroups: ['Abs'],
+        warmupSets: '1', workingSets: '2', reps: '12-15', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+    ],
+  };
+
+  const push1: WorkoutDay = {
+    id: 'seed-day-push1-b2',
+    name: 'Push #1',
+    block: 2,
+    blockLabel: 'Block 2: 5-Week Grind Phase',
+    exercises: [
+      ex({
+        name: 'DB Lateral Raise',
+        muscleGroups: ['Shoulders'],
+        warmupSets: '1', workingSets: '3', reps: '12-15', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: ['Flat Smith Machine Lateral Raise'],
+      }),
+      ex({
+        name: 'Machine Bench Press',
+        muscleGroups: ['Chest'],
+        warmupSets: '2-3', workingSets: '2', reps: '10-12', earlyRPE: '~7', lastRPE: '~9', rest: '~3-5 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Bottom-Half Pec Deck',
+        muscleGroups: ['Chest'],
+        warmupSets: '2', workingSets: '2', reps: '8-10', earlyRPE: '~7-8', lastRPE: '~9', rest: '~2-3 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Seated Machine Shoulder Press',
+        muscleGroups: ['Shoulders'],
+        warmupSets: '2', workingSets: '2', reps: '8-10', earlyRPE: '~7', lastRPE: '~9', rest: '~2-3 min',
+        substitutions: ['Overhead Cable Shoulder Press'],
+      }),
+      ex({
+        name: 'Triceps Extension (Bar)',
+        muscleGroups: ['Triceps'],
+        warmupSets: '1', workingSets: '2', reps: '10-12', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Cable Triceps Kickback',
+        muscleGroups: ['Triceps'],
+        warmupSets: '1', workingSets: '2', reps: '12-15', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+    ],
+  };
+
+  const legs1: WorkoutDay = {
+    id: 'seed-day-legs1-b2',
+    name: 'Legs #1',
+    block: 2,
+    blockLabel: 'Block 2: 5-Week Grind Phase',
+    exercises: [
+      ex({
+        name: 'Seated Leg Curl',
+        muscleGroups: ['Hamstrings'],
+        warmupSets: '1-2', workingSets: '2', reps: '10-12', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Hack Squat',
+        muscleGroups: ['Quads'],
+        warmupSets: '2-4', workingSets: '2', reps: '8-10', earlyRPE: '~7', lastRPE: '~8', rest: '~3-5 min',
+        substitutions: ['Smith Machine Squat'],
+      }),
+      ex({
+        name: 'Single-Leg DB Hip Thrust',
+        muscleGroups: ['Hamstrings', 'Glutes'],
+        warmupSets: '1-2', workingSets: '2', reps: '8-10', earlyRPE: '~7', lastRPE: '~8', rest: '~2-3 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Leg Extension',
+        muscleGroups: ['Quads'],
+        warmupSets: '1-2', workingSets: '2', reps: '8-10', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Standing Calf Raise',
+        muscleGroups: ['Calves'],
+        warmupSets: '1', workingSets: '3', reps: '12-15', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Machine Hip Abduction',
+        muscleGroups: ['Glutes'],
+        warmupSets: '1-2', workingSets: '2', reps: '10-12', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+    ],
+  };
+
+  const arms1: WorkoutDay = {
+    id: 'seed-day-arms1-b2',
+    name: 'Arms & Weak Points #1',
+    block: 2,
+    blockLabel: 'Block 2: 5-Week Grind Phase',
+    exercises: [
+      weakSlot(1),
+      weakSlot(2),
+      ex({
+        name: 'Machine Preacher Curl',
+        muscleGroups: ['Biceps'],
+        warmupSets: '1', workingSets: '2', reps: '10-12', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Diverging Pressdown (Rope)',
+        muscleGroups: ['Triceps'],
+        warmupSets: '1', workingSets: '2', reps: '10-12', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Inverse DB Zottman Curl',
+        muscleGroups: ['Biceps', 'Forearms'],
+        warmupSets: '1', workingSets: '2', reps: '12-15', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Close-Grip Pushup (AMRAP)',
+        muscleGroups: ['Triceps'],
+        warmupSets: '1', workingSets: '2', reps: 'AMRAP', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Ab Wheel Rollout',
+        muscleGroups: ['Abs'],
+        warmupSets: '1', workingSets: '3', reps: '12-15', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+    ],
+  };
+
+  const pull2: WorkoutDay = {
+    id: 'seed-day-pull2-b2',
+    name: 'Pull #2',
+    block: 2,
+    blockLabel: 'Block 2: 5-Week Grind Phase',
+    exercises: [
+      ex({
+        name: 'Pendlay Deficit Row',
+        muscleGroups: ['Back Thickness'],
+        warmupSets: '2-3', workingSets: '2', reps: '10-12', earlyRPE: '~7', lastRPE: '~9', rest: '~3-4 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Half-Kneeling 1-Arm Lat Pulldown',
+        muscleGroups: ['Back Width'],
+        warmupSets: '2', workingSets: '2', reps: '10-12', earlyRPE: '~7', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Neutral-Grip Seated Cable Row',
+        muscleGroups: ['Back Thickness'],
+        warmupSets: '1', workingSets: '2', reps: '12-15', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Cable Rope Hammer Curl',
+        muscleGroups: ['Biceps', 'Forearms'],
+        warmupSets: '1', workingSets: '2', reps: '10-12', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Reverse Pec Deck',
+        muscleGroups: ['Rear Delts'],
+        warmupSets: '1', workingSets: '2', reps: '12-15', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Smith Machine Cheat Shrug',
+        muscleGroups: ['Traps'],
+        warmupSets: '1', workingSets: '2', reps: '12-15', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+    ],
+  };
+
+  const push2: WorkoutDay = {
+    id: 'seed-day-push2-b2',
+    name: 'Push #2',
+    block: 2,
+    blockLabel: 'Block 2: 5-Week Grind Phase',
+    exercises: [
+      ex({
+        name: 'Cuffed Lateral Raise',
+        muscleGroups: ['Shoulders'],
+        warmupSets: '1', workingSets: '3', reps: '10-12', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Incline DB Press',
+        muscleGroups: ['Chest'],
+        warmupSets: '2-3', workingSets: '2', reps: '8-10', earlyRPE: '~7', lastRPE: '~9', rest: '~2-3 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Seated DB Shoulder Press',
+        muscleGroups: ['Shoulders'],
+        warmupSets: '2-3', workingSets: '2', reps: '8-10', earlyRPE: '~7', lastRPE: '~9', rest: '~2-3 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'EZ-Bar Skull Crusher',
+        muscleGroups: ['Triceps'],
+        warmupSets: '1', workingSets: '3', reps: '12-15', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Cable Crossover',
+        muscleGroups: ['Chest'],
+        warmupSets: '1', workingSets: '3', reps: '12-15', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+    ],
+  };
+
+  const legs2: WorkoutDay = {
+    id: 'seed-day-legs2-b2',
+    name: 'Legs #2',
+    block: 2,
+    blockLabel: 'Block 2: 5-Week Grind Phase',
+    exercises: [
+      ex({
+        name: 'DB RDL',
+        muscleGroups: ['Hamstrings'],
+        warmupSets: '2-3', workingSets: '2', reps: '10-12', earlyRPE: '~5', lastRPE: '~5-6', rest: '~3-5 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Belt Squat',
+        muscleGroups: ['Quads'],
+        warmupSets: '2-4', workingSets: '2', reps: '6-8', earlyRPE: '~7', lastRPE: '~8', rest: '~3-5 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'DB Bulgarian Split Squat',
+        muscleGroups: ['Quads', 'Glutes'],
+        warmupSets: '1-2', workingSets: '2', reps: '6-8', earlyRPE: '~7', lastRPE: '~8', rest: '~2-3 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Standing Calf Raise',
+        muscleGroups: ['Calves'],
+        warmupSets: '1', workingSets: '3', reps: '12-15', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Machine Hip Adduction',
+        muscleGroups: ['Adductors'],
+        warmupSets: '1-2', workingSets: '2', reps: '10-12', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+    ],
+  };
+
+  const arms2: WorkoutDay = {
+    id: 'seed-day-arms2-b2',
+    name: 'Arms & Weak Points #2',
+    block: 2,
+    blockLabel: 'Block 2: 5-Week Grind Phase',
+    exercises: [
+      weakSlot(1),
+      weakSlot(2),
+      ex({
+        name: 'Reverse-Grip EZ-Bar Curl',
+        muscleGroups: ['Biceps', 'Forearms'],
+        warmupSets: '1', workingSets: '2', reps: '10-12', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Cable Triceps Pressdown (Bar)',
+        muscleGroups: ['Triceps'],
+        warmupSets: '1', workingSets: '2', reps: '10-12', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Bayesian Cable Curl',
+        muscleGroups: ['Biceps'],
+        warmupSets: '1', workingSets: '2', reps: '12-15', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Dual-Cable Triceps Press',
+        muscleGroups: ['Triceps'],
+        warmupSets: '1', workingSets: '2', reps: '12-15', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+      ex({
+        name: 'Machine Crunch',
+        muscleGroups: ['Abs'],
+        warmupSets: '1', workingSets: '3', reps: '12-15', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
+        substitutions: [],
+      }),
+    ],
+  };
+
+  return [
+    attachProgression(pull1, 'pull1_block2'),
+    attachProgression(push1, 'push1_block2'),
+    attachProgression(legs1, 'legs1_block2'),
+    attachProgression(arms1, 'arms1_block2'),
+    attachProgression(pull2, 'pull2_block2'),
+    attachProgression(push2, 'push2_block2'),
+    attachProgression(legs2, 'legs2_block2'),
+    attachProgression(arms2, 'arms2_block2'),
+  ];
 }
 
 export function createSeedProgram(): WorkoutProgram {
@@ -367,6 +758,8 @@ export function createSeedProgram(): WorkoutProgram {
     id: 'seed-program-ppl',
     name: 'Pure Bodybuilding Phase 2 — PPL',
     createdAt: new Date().toISOString(),
-    days: buildDays(),
+    days: [...buildBlock1Days(), ...buildBlock2Days()],
+    currentBlock: 1,
+    currentWeek: 1,
   };
 }
