@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "workout-app-tmp",
-    "slug": "workout-app-tmp",
+    "name": "Workout App",
+    "slug": "workout-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
