@@ -14,6 +14,7 @@ export default function TabsLayout() {
         tabBarShowLabel: true,
         tabBarLabelStyle: { fontSize: 11, fontFamily: 'Inter_600SemiBold', marginBottom: Platform.OS === 'android' ? 6 : 0 },
         tabBarStyle: styles.tabBar,
+        sceneStyle: { backgroundColor: colors.bg },
       }}
     >
       <Tabs.Screen name="home" options={{ title: 'Home', tabBarIcon: ({ color, size }) => <HomeIcon color={color as string} size={size} /> }} />
