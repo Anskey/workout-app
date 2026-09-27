@@ -11,7 +11,7 @@ import { ModalHeader } from '@/components/ModalHeader';
 import { useStore } from '@/store/useStore';
 import { IDEAL_PRESETS, IDEAL_PRESET_ORDER } from '@/data/idealRatios';
 import { compareToIdeal, getLatestMeasurement, getSuggestedGoal } from '@/logic/recommendations';
-import { exportData, importData } from '@/logic/dataPortability';
+import { exportData, importData, importDataFromUrl } from '@/logic/dataPortability';
 import type { ActivityLevel, Goal, IdealPreset, LengthUnit, Sex, WeightUnit } from '@/types';
 
 const GOALS: { key: Goal; label: string }[] = [
@@ -45,6 +45,8 @@ export default function EditProfile() {
   const [idealPreset, setIdealPreset] = useState<IdealPreset>(profile.idealPreset);
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [importUrl, setImportUrl] = useState('');
+  const [importingUrl, setImportingUrl] = useState(false);
 
   // Live preview of what "Auto" would resolve to, using the in-progress edits above
   // (sex/height/reference), so switching presets updates the suggestion immediately.
@@ -92,6 +94,31 @@ export default function EditProfile() {
             if (!result.ok && !result.cancelled) {
               Alert.alert('Import failed', result.error ?? 'Something went wrong.');
             } else if (result.ok) {
+              Alert.alert('Import complete', 'Your data has been replaced with the imported backup.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const onImportUrl = () => {
+    if (!importUrl.trim()) return;
+    Alert.alert(
+      'Import data from this link?',
+      'This replaces everything currently in the app (programs, measurements, nutrition and workout logs) with what’s at that link. This can’t be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Import',
+          style: 'destructive',
+          onPress: async () => {
+            setImportingUrl(true);
+            const result = await importDataFromUrl(importUrl);
+            setImportingUrl(false);
+            if (!result.ok) {
+              Alert.alert('Import failed', result.error ?? 'Something went wrong.');
+            } else {
               Alert.alert('Import complete', 'Your data has been replaced with the imported backup.');
             }
           },
@@ -182,6 +209,25 @@ export default function EditProfile() {
           <ActivityIndicator color={colors.navyDeep} style={{ marginTop: 10 }} />
         ) : (
           <Button label="Import Data" variant="ghost" onPress={onImport} style={{ marginTop: 10 }} />
+        )}
+
+        <Text style={[styles.backupHint, { marginTop: 14 }]}>
+          If picking a file doesn&rsquo;t work (a known Android issue with some Downloads/cloud-storage apps), paste a
+          direct link to a backup file instead:
+        </Text>
+        <TextInput
+          value={importUrl}
+          onChangeText={setImportUrl}
+          autoCapitalize="none"
+          autoCorrect={false}
+          placeholder="https://…/backup.json"
+          placeholderTextColor={colors.textFaint}
+          style={styles.input}
+        />
+        {importingUrl ? (
+          <ActivityIndicator color={colors.navyDeep} style={{ marginTop: 10 }} />
+        ) : (
+          <Button label="Import From Link" variant="ghost" onPress={onImportUrl} style={{ marginTop: 4 }} />
         )}
       </FormScrollView>
     </SafeAreaView>

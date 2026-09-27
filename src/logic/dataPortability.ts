@@ -82,3 +82,22 @@ export async function importData(): Promise<ImportResult> {
     return { ok: false, error: e instanceof Error ? e.message : 'That file could not be read. Try saving it to a local folder (like Downloads) rather than opening it directly from cloud storage.' };
   }
 }
+
+/** Same restore as importData(), but fetched from a direct URL instead of the Android
+ * file picker — a fallback for when the picker can't read a given file's content:// URI
+ * (a real, recurring Android storage-provider issue, not something fixable from here). */
+export async function importDataFromUrl(url: string): Promise<ImportResult> {
+  try {
+    const res = await fetch(url.trim());
+    if (!res.ok) return { ok: false, error: `Couldn't download that (HTTP ${res.status}).` };
+    const text = await res.text();
+    const parsed: unknown = JSON.parse(text);
+    if (!isSyncableState(parsed)) {
+      return { ok: false, error: "That file doesn't look like a Sculpt backup." };
+    }
+    useStore.getState().hydrateFromCloud(parsed);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'That link could not be read as a Sculpt backup.' };
+  }
+}
