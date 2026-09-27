@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
@@ -9,6 +9,7 @@ import { ChevronRightIcon, PlusIcon } from '@/components/Icons';
 import { useActiveProgram, useStore } from '@/store/useStore';
 import { getMuscleColor } from '@/data/muscleGroups';
 import { formatSets, getLastExerciseLog } from '@/logic/sessionHistory';
+import { DEFAULT_PROGRAM_ID } from '@/data/seedProgram';
 import type { Exercise, WeekPrescription, WorkoutDay, WorkoutSessionLog } from '@/types';
 
 function currentPrescription(exercise: Exercise, week: number): WeekPrescription | Exercise {
@@ -136,6 +137,16 @@ function DayCard({
   onToggle: () => void;
   sessionLogs: WorkoutSessionLog[];
 }) {
+  const resetDayToDefault = useStore((s) => s.resetDayToDefault);
+  const isDefaultProgram = programId === DEFAULT_PROGRAM_ID;
+
+  const onResetDay = () => {
+    Alert.alert('Reset day to default?', `"${day.name}" will revert to the program's original exercises, undoing any edits or swaps.`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Reset', style: 'destructive', onPress: () => resetDayToDefault(programId, day.id) },
+    ]);
+  };
+
   return (
     <Card style={styles.dayCard}>
       <Pressable onPress={onToggle} style={styles.dayHeaderRow}>
@@ -143,12 +154,19 @@ function DayCard({
           <Text style={styles.dayName}>{day.name}</Text>
           <Text style={styles.dayMeta}>{day.exercises.length} exercises</Text>
         </View>
-        <Pressable
-          hitSlop={10}
-          onPress={() => router.push({ pathname: '/modals/day-editor', params: { programId, dayId: day.id } })}
-        >
-          <Text style={styles.editLink}>Edit</Text>
-        </Pressable>
+        <View style={styles.headerLinks}>
+          {isDefaultProgram && (
+            <Pressable hitSlop={10} onPress={onResetDay}>
+              <Text style={styles.resetLink}>Reset</Text>
+            </Pressable>
+          )}
+          <Pressable
+            hitSlop={10}
+            onPress={() => router.push({ pathname: '/modals/day-editor', params: { programId, dayId: day.id } })}
+          >
+            <Text style={styles.editLink}>Edit</Text>
+          </Pressable>
+        </View>
       </Pressable>
 
       {expanded && (
@@ -195,6 +213,16 @@ function ExerciseRow({
   lastSetsText: string;
 }) {
   const prescription = currentPrescription(exercise, currentWeek);
+  const resetExerciseToDefault = useStore((s) => s.resetExerciseToDefault);
+  const isDefaultProgram = programId === DEFAULT_PROGRAM_ID;
+
+  const onReset = () => {
+    Alert.alert('Reset exercise to default?', `"${exercise.name}" will revert to what the program originally prescribed here.`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Reset', style: 'destructive', onPress: () => resetExerciseToDefault(programId, dayId, exercise.id) },
+    ]);
+  };
+
   return (
     <View style={styles.exerciseRow}>
       <Pressable
@@ -220,6 +248,11 @@ function ExerciseRow({
         >
           <Text style={styles.swapLink}>Swap</Text>
         </Pressable>
+        {isDefaultProgram && (
+          <Pressable hitSlop={10} onPress={onReset}>
+            <Text style={styles.resetLink}>Reset</Text>
+          </Pressable>
+        )}
         <ChevronRightIcon color={colors.textFaint} />
       </View>
     </View>
@@ -238,6 +271,8 @@ const styles = StyleSheet.create({
   dayName: { fontFamily: serif, fontSize: 19, color: colors.textPrimary },
   dayMeta: { color: colors.textFaint, fontSize: 12, marginTop: 2 },
   editLink: { color: colors.gold, fontSize: 13, fontWeight: '600' },
+  headerLinks: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  resetLink: { color: colors.textFaint, fontSize: 13, fontWeight: '600' },
   exerciseList: { marginTop: 14 },
   exerciseRow: {
     flexDirection: 'row',

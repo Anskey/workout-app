@@ -1,10 +1,10 @@
 import type { Exercise, WorkoutDay, WorkoutProgram } from '@/types';
 import { PROGRESSION } from './programProgression';
 
-let counter = 0;
 function ex(partial: Omit<Exercise, 'id'>): Exercise {
-  counter += 1;
-  return { id: `seed-ex-${counter}`, ...partial };
+  // Real id is assigned deterministically in attachProgression, based on day + position,
+  // so the same program always regenerates identical ids (needed for "reset to default").
+  return { id: 'unassigned', ...partial };
 }
 
 function weakSlot(n: 1 | 2): Exercise {
@@ -22,12 +22,16 @@ function weakSlot(n: 1 | 2): Exercise {
   });
 }
 
-/** Attaches the extracted 5-week progression to each exercise in a day, by position. */
+/**
+ * Assigns each exercise a deterministic id (based on day + position) and attaches its
+ * extracted 5-week progression, if any. Deterministic ids mean createSeedProgram()
+ * always regenerates identical exercise ids, which "reset to default" relies on.
+ */
 function attachProgression(day: WorkoutDay, progressionKey: string): WorkoutDay {
   const weeks = PROGRESSION[progressionKey];
-  if (!weeks) return day;
   day.exercises.forEach((exercise, i) => {
-    if (weeks[i]) exercise.weeklyProgression = weeks[i];
+    exercise.id = `${day.id}-ex-${i}`;
+    if (weeks?.[i]) exercise.weeklyProgression = weeks[i];
   });
   return day;
 }
@@ -753,13 +757,20 @@ function buildBlock2Days(): WorkoutDay[] {
   ];
 }
 
+export const DEFAULT_PROGRAM_ID = 'seed-program-ppl';
+
 export function createSeedProgram(): WorkoutProgram {
   return {
-    id: 'seed-program-ppl',
+    id: DEFAULT_PROGRAM_ID,
     name: 'Pure Bodybuilding Phase 2 — PPL',
     createdAt: new Date().toISOString(),
     days: [...buildBlock1Days(), ...buildBlock2Days()],
     currentBlock: 1,
     currentWeek: 1,
   };
+}
+
+/** Returns a fresh copy of the built-in program's original data, for "reset to default". */
+export function getDefaultProgram(programId: string): WorkoutProgram | undefined {
+  return programId === DEFAULT_PROGRAM_ID ? createSeedProgram() : undefined;
 }

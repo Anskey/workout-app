@@ -11,7 +11,7 @@ import type {
   WorkoutProgram,
   WorkoutSessionLog,
 } from '@/types';
-import { createSeedProgram } from '@/data/seedProgram';
+import { createSeedProgram, getDefaultProgram } from '@/data/seedProgram';
 
 export function generateId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
@@ -49,6 +49,10 @@ interface AppState {
 
   upsertExercise: (programId: string, dayId: string, exercise: Exercise) => void;
   deleteExercise: (programId: string, dayId: string, exerciseId: string) => void;
+
+  resetExerciseToDefault: (programId: string, dayId: string, exerciseId: string) => void;
+  resetDayToDefault: (programId: string, dayId: string) => void;
+  resetProgramToDefault: (programId: string) => void;
 
   addMeasurement: (entry: Omit<MeasurementEntry, 'id'>) => void;
   updateMeasurement: (entry: MeasurementEntry) => void;
@@ -145,6 +149,31 @@ export const useStore = create<AppState>()(
           }),
         })),
 
+      resetExerciseToDefault: (programId, dayId, exerciseId) =>
+        set((s) => {
+          const defaultProgram = getDefaultProgram(programId);
+          const defaultExercise = defaultProgram?.days.find((d) => d.id === dayId)?.exercises.find((e) => e.id === exerciseId);
+          if (!defaultExercise) return s;
+          return {
+            programs: s.programs.map((p) => {
+              if (p.id !== programId) return p;
+              return { ...p, days: p.days.map((d) => (d.id !== dayId ? d : { ...d, exercises: d.exercises.map((e) => (e.id === exerciseId ? defaultExercise : e)) })) };
+            }),
+          };
+        }),
+      resetDayToDefault: (programId, dayId) =>
+        set((s) => {
+          const defaultDay = getDefaultProgram(programId)?.days.find((d) => d.id === dayId);
+          if (!defaultDay) return s;
+          return { programs: s.programs.map((p) => (p.id !== programId ? p : { ...p, days: p.days.map((d) => (d.id === dayId ? defaultDay : d)) })) };
+        }),
+      resetProgramToDefault: (programId) =>
+        set((s) => {
+          const defaultProgram = getDefaultProgram(programId);
+          if (!defaultProgram) return s;
+          return { programs: s.programs.map((p) => (p.id === programId ? defaultProgram : p)) };
+        }),
+
       addMeasurement: (entry) => set((s) => ({ measurements: [...s.measurements, { ...entry, id: generateId() }] })),
       updateMeasurement: (entry) =>
         set((s) => ({ measurements: s.measurements.map((m) => (m.id === entry.id ? entry : m)) })),
@@ -185,10 +214,10 @@ export const useStore = create<AppState>()(
     {
       name: 'workout-app-storage',
       storage: createJSONStorage(() => AsyncStorage),
-      version: 2,
+      version: 3,
       migrate: (persistedState: unknown, version: number) => {
         const state = (persistedState ?? {}) as { programs?: WorkoutProgram[]; [key: string]: unknown };
-        if (version < 2) {
+        if (version < 3) {
           const seed = createSeedProgram();
           const programs = Array.isArray(state.programs) ? [...state.programs] : [];
           const idx = programs.findIndex((p) => p.id === 'seed-program-ppl');

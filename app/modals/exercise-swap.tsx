@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
-import { Badge, Button, Pill } from '@/theme/ui';
+import { Badge, Button, Pill, SectionHeader } from '@/theme/ui';
 import { Card } from '@/theme/Card';
 import { ModalHeader } from '@/components/ModalHeader';
 import { useStore } from '@/store/useStore';
@@ -21,6 +21,21 @@ export default function ExerciseSwap() {
   const existing = day?.exercises.find((e) => e.id === exerciseId);
 
   const library = useMemo(() => buildExerciseLibrary(programs), [programs]);
+  const libraryByName = useMemo(() => {
+    const map = new Map<string, MuscleGroup[]>();
+    library.forEach((l) => map.set(l.name.toLowerCase(), l.muscleGroups));
+    return map;
+  }, [library]);
+
+  const programAlternatives = useMemo(
+    () =>
+      (existing?.substitutions ?? [])
+        .filter((name) => name.trim().length > 0 && !/^pick a lagging/i.test(name))
+        .map((name) => ({ name, muscleGroups: libraryByName.get(name.toLowerCase()) ?? existing?.muscleGroups ?? [] })),
+    [existing, libraryByName]
+  );
+  const programAlternativeNames = useMemo(() => new Set(programAlternatives.map((a) => a.name.toLowerCase())), [programAlternatives]);
+
   const musclesPresent = useMemo(() => {
     const set = new Set<MuscleGroup>();
     library.forEach((l) => l.muscleGroups.forEach((m) => set.add(m)));
@@ -32,6 +47,7 @@ export default function ExerciseSwap() {
 
   const filtered = library.filter((item) => {
     if (existing && item.name.toLowerCase() === existing.name.toLowerCase()) return false;
+    if (programAlternativeNames.has(item.name.toLowerCase())) return false;
     if (muscleFilter !== 'All' && !item.muscleGroups.includes(muscleFilter)) return false;
     if (search.trim() && !item.name.toLowerCase().includes(search.trim().toLowerCase())) return false;
     return true;
@@ -58,6 +74,29 @@ export default function ExerciseSwap() {
         <ModalHeader title="Swap Exercise" />
         {existing && <Text style={styles.subtitle}>Replacing "{existing.name}" — same sets/reps, different movement.</Text>}
 
+        {programAlternatives.length > 0 && (
+          <>
+            <SectionHeader>Alternatives From This Program</SectionHeader>
+            <Card padded={false} style={{ marginBottom: 22 }}>
+              {programAlternatives.map((item, i) => (
+                <Pressable
+                  key={item.name}
+                  onPress={() => onSelect(item.name, item.muscleGroups)}
+                  style={[styles.row, i !== programAlternatives.length - 1 && styles.rowBorder]}
+                >
+                  <Text style={styles.rowName}>{item.name}</Text>
+                  <View style={styles.badgeRow}>
+                    {item.muscleGroups.map((m) => (
+                      <Badge key={m} label={m} color={getMuscleColor(m)} />
+                    ))}
+                  </View>
+                </Pressable>
+              ))}
+            </Card>
+          </>
+        )}
+
+        <SectionHeader>Or Choose a Completely Different Exercise</SectionHeader>
         <TextInput
           value={search}
           onChangeText={setSearch}

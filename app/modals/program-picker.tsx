@@ -8,6 +8,7 @@ import { Card } from '@/theme/Card';
 import { ModalHeader } from '@/components/ModalHeader';
 import { CheckIcon, TrashIcon } from '@/components/Icons';
 import { useStore } from '@/store/useStore';
+import { DEFAULT_PROGRAM_ID } from '@/data/seedProgram';
 
 export default function ProgramPicker() {
   const programs = useStore((s) => s.programs);
@@ -15,6 +16,7 @@ export default function ProgramPicker() {
   const setActiveProgram = useStore((s) => s.setActiveProgram);
   const addProgram = useStore((s) => s.addProgram);
   const deleteProgram = useStore((s) => s.deleteProgram);
+  const resetProgramToDefault = useStore((s) => s.resetProgramToDefault);
 
   const [newName, setNewName] = useState('');
   const [creating, setCreating] = useState(false);
@@ -42,6 +44,13 @@ export default function ProgramPicker() {
     ]);
   };
 
+  const onReset = (id: string, name: string) => {
+    Alert.alert('Reset program to default?', `"${name}" will revert entirely to the program's original exercises and weeks, undoing all edits and swaps.`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Reset', style: 'destructive', onPress: () => resetProgramToDefault(id) },
+    ]);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
@@ -55,6 +64,11 @@ export default function ProgramPicker() {
                 <Text style={styles.programMeta}>{p.days.length} workout days</Text>
               </Pressable>
               {p.id === activeProgramId && <CheckIcon color={colors.gold} />}
+              {p.id === DEFAULT_PROGRAM_ID && (
+                <Pressable hitSlop={10} onPress={() => onReset(p.id, p.name)} style={{ marginLeft: 14 }}>
+                  <Text style={styles.resetLink}>Reset</Text>
+                </Pressable>
+              )}
               <Pressable hitSlop={10} onPress={() => onDelete(p.id, p.name)} style={{ marginLeft: 14 }}>
                 <TrashIcon color={colors.textFaint} size={16} />
               </Pressable>
@@ -90,6 +104,7 @@ const styles = StyleSheet.create({
   rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.divider },
   programName: { fontFamily: serif, fontSize: 17, color: colors.textPrimary },
   programMeta: { color: colors.textFaint, fontSize: 12, marginTop: 2 },
+  resetLink: { color: colors.textFaint, fontSize: 12.5, fontWeight: '600' },
   input: {
     color: colors.textPrimary,
     fontSize: 16,
