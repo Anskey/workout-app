@@ -62,7 +62,7 @@ export default function Nutrition() {
             </View>
           ))}
           {suggestion.proteinTargetG && (
-            <Text style={styles.targetText}>Protein target: ~{suggestion.proteinTargetG}g/day (≈2.0g/kg bodyweight)</Text>
+            <Text style={styles.targetText}>Protein target: ~{suggestion.proteinTargetG}g/day (≈1g per lb bodyweight)</Text>
           )}
         </Card>
 

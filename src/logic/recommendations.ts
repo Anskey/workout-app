@@ -140,7 +140,9 @@ export function getNutritionSuggestion(
   const avgProteinG = average(last7.map((l) => l.proteinG).filter((v): v is number => v != null));
 
   const latestWeight = last7.slice().reverse().find((l) => l.weightKg != null)?.weightKg ?? latestMeasurement?.weightKg;
-  const proteinTargetG = latestWeight ? Math.round(latestWeight * 2.0) : null;
+  // ~1g per lb bodyweight (2.2g/kg) — the standard bodybuilding heuristic, above the
+  // more conservative clinical minimum (~1.6-2.0g/kg) this app used previously.
+  const proteinTargetG = latestWeight ? Math.round(latestWeight * 2.2) : null;
 
   const weightEntries = sorted.filter((l) => l.weightKg != null);
   let weeklyWeightChangePct: number | null = null;
