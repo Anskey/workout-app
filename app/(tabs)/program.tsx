@@ -8,7 +8,7 @@ import { Card } from '@/theme/Card';
 import { ChevronRightIcon, PlusIcon } from '@/components/Icons';
 import { useActiveProgram, useStore } from '@/store/useStore';
 import { getMuscleColor } from '@/data/muscleGroups';
-import { formatSets, getLastExerciseLog } from '@/logic/sessionHistory';
+import { formatSet, getLastTopSet } from '@/logic/sessionHistory';
 import { DEFAULT_PROGRAM_ID } from '@/data/seedProgram';
 import type { Exercise, WeekPrescription, WorkoutDay, WorkoutSessionLog } from '@/types';
 
@@ -30,7 +30,10 @@ export default function Program() {
   }, [program]);
 
   const selectedBlock = program?.currentBlock ?? blocks[0];
-  const daysInBlock = program ? program.days.filter((d) => (blocks.length === 0 ? true : d.block === selectedBlock)) : [];
+  const daysInBlock = useMemo(
+    () => (program ? program.days.filter((d) => blocks.length === 0 || d.block === selectedBlock) : []),
+    [program, blocks, selectedBlock]
+  );
   const blockLabel = daysInBlock[0]?.blockLabel;
 
   const maxWeek = useMemo(() => {
@@ -184,7 +187,7 @@ function DayCard({
               programId={programId}
               dayId={day.id}
               currentWeek={currentWeek}
-              lastSetsText={formatSets(getLastExerciseLog(sessionLogs, exercise.name), weightUnit)}
+              lastSetsText={formatSet(getLastTopSet(sessionLogs, exercise.name), weightUnit)}
             />
           ))}
           <Pressable
@@ -235,7 +238,7 @@ function ExerciseRow({
           {prescription.workingSets} sets × {prescription.reps} reps
           {prescription.rest ? ` · rest ${prescription.rest}` : ''}
         </Text>
-        {!!lastSetsText && <Text style={styles.lastText}>Last: {lastSetsText}</Text>}
+        {!!lastSetsText && <Text style={styles.lastText}>Last best: {lastSetsText}</Text>}
         <View style={styles.badgeRow}>
           {exercise.muscleGroups.map((m) => (
             <Badge key={m} label={m} color={getMuscleColor(m)} />

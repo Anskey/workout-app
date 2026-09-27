@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { Button, SectionHeader, serif } from '@/theme/ui';
 import { Card } from '@/theme/Card';
+import { FormScrollView } from '@/components/FormScrollView';
 import { ModalHeader } from '@/components/ModalHeader';
 import { CheckIcon, TrashIcon } from '@/components/Icons';
 import { useStore } from '@/store/useStore';
@@ -53,7 +54,7 @@ export default function ProgramPicker() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <FormScrollView contentContainerStyle={styles.scroll}>
         <ModalHeader title="Programs" />
 
         <Card style={{ marginBottom: 18 }}>
@@ -92,14 +93,14 @@ export default function ProgramPicker() {
         ) : (
           <Button label="New Program" variant="outline" onPress={() => setCreating(true)} />
         )}
-      </ScrollView>
+      </FormScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scroll: { padding: 22, paddingBottom: 48 },
+  scroll: { padding: 22 },
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14 },
   rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.divider },
   programName: { fontFamily: serif, fontSize: 17, color: colors.textPrimary },

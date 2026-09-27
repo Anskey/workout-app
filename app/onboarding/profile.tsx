@@ -1,12 +1,14 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { Button, Pill, ScreenTitle, SectionHeader } from '@/theme/ui';
 import { Card } from '@/theme/Card';
+import { FormScrollView } from '@/components/FormScrollView';
+import { HeightInput } from '@/components/HeightInput';
 import { useOnboardingDraft } from '@/store/onboardingDraft';
-import type { ActivityLevel, Goal, Sex, WeightUnit } from '@/types';
+import type { ActivityLevel, Goal, LengthUnit, Sex, WeightUnit } from '@/types';
 
 const GOALS: { key: Goal; label: string }[] = [
   { key: 'bulk', label: 'Build Muscle' },
@@ -27,7 +29,7 @@ export default function Profile() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <FormScrollView contentContainerStyle={styles.scroll}>
         <ScreenTitle subtitle="This tunes your reference measurements and daily targets.">About You</ScreenTitle>
 
         <Card style={styles.card}>
@@ -40,16 +42,20 @@ export default function Profile() {
             style={styles.textInput}
           />
 
-          <SectionHeader>Height</SectionHeader>
-          <View style={styles.inputRow}>
-            <TextInput
-              value={String(draft.heightCm)}
-              onChangeText={(t) => draft.setField('heightCm', Number(t.replace(/[^0-9]/g, '')) || 0)}
-              keyboardType="number-pad"
-              style={[styles.textInput, { flex: 1 }]}
-            />
-            <Text style={styles.unit}>cm</Text>
+          <SectionHeader>Units</SectionHeader>
+          <View style={styles.pillRow}>
+            {(['kg', 'lb'] as WeightUnit[]).map((u) => (
+              <Pill key={u} label={u === 'kg' ? 'Kilograms' : 'Pounds'} active={draft.weightUnit === u} onPress={() => draft.setField('weightUnit', u)} />
+            ))}
           </View>
+          <View style={styles.pillRow}>
+            {(['cm', 'in'] as LengthUnit[]).map((u) => (
+              <Pill key={u} label={u === 'cm' ? 'Centimetres' : 'Feet / Inches'} active={draft.lengthUnit === u} onPress={() => draft.setField('lengthUnit', u)} />
+            ))}
+          </View>
+
+          <SectionHeader>Height</SectionHeader>
+          <HeightInput heightCm={draft.heightCm} unit={draft.lengthUnit} onChange={(cm) => draft.setField('heightCm', cm)} />
 
           <SectionHeader>Sex</SectionHeader>
           <View style={styles.pillRow}>
@@ -71,24 +77,17 @@ export default function Profile() {
               <Pill key={a.key} label={a.label} active={draft.activityLevel === a.key} onPress={() => draft.setField('activityLevel', a.key)} />
             ))}
           </View>
-
-          <SectionHeader>Weight Unit</SectionHeader>
-          <View style={styles.pillRow}>
-            {(['kg', 'lb'] as WeightUnit[]).map((u) => (
-              <Pill key={u} label={u === 'kg' ? 'Kilograms' : 'Pounds'} active={draft.weightUnit === u} onPress={() => draft.setField('weightUnit', u)} />
-            ))}
-          </View>
         </Card>
 
         <Button label="Continue" onPress={() => router.push('/onboarding/measurements')} style={{ marginTop: 24 }} />
-      </ScrollView>
+      </FormScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scroll: { padding: 22, paddingBottom: 48 },
+  scroll: { padding: 22 },
   card: { gap: 2 },
   textInput: {
     color: colors.textPrimary,
@@ -101,7 +100,5 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     marginBottom: 8,
   },
-  inputRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
-  unit: { color: colors.textFaint, fontSize: 13 },
   pillRow: { flexDirection: 'row', marginBottom: 10 },
 });

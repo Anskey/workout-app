@@ -1,20 +1,28 @@
-import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
-import { Badge, Button, SectionHeader } from '@/theme/ui';
+import { Badge, Button } from '@/theme/ui';
 import { Card } from '@/theme/Card';
+import { FormScrollView } from '@/components/FormScrollView';
 import { ModalHeader } from '@/components/ModalHeader';
 import { useStore } from '@/store/useStore';
 import { getMuscleColor } from '@/data/muscleGroups';
-import { formatSets, getLastExerciseLog, parseSetCount } from '@/logic/sessionHistory';
+import { formatSet, getLastExerciseLog, getLastTopSet, parseSetCount } from '@/logic/sessionHistory';
 import { formatLongDate, todayISODate } from '@/logic/dates';
 import { displayValueToKg, kgToDisplayValue } from '@/logic/units';
-import type { Exercise, SetLog, WeekPrescription } from '@/types';
+import type { Exercise, SetLog, WeekPrescription, WorkoutSessionLog } from '@/types';
 
 function currentPrescription(exercise: Exercise, week: number): WeekPrescription | Exercise {
   return exercise.weeklyProgression?.find((w) => w.week === week) ?? exercise;
+}
+
+/** Blank set rows for an exercise, with weights pre-filled from the last time it was done. */
+function initialSets(exercise: Exercise, week: number, sessionLogs: WorkoutSessionLog[], fromToday?: SetLog[]): SetLog[] {
+  const count = parseSetCount(currentPrescription(exercise, week).workingSets);
+  const lastSets = getLastExerciseLog(sessionLogs, exercise.name);
+  return Array.from({ length: count }, (_, i) => fromToday?.[i] ?? (lastSets?.[i] ? { weightKg: lastSets[i].weightKg } : {}));
 }
 
 export default function SessionLog() {
@@ -34,20 +42,25 @@ export default function SessionLog() {
   const [setsByExercise, setSetsByExercise] = useState<Record<string, SetLog[]>>(() => {
     const init: Record<string, SetLog[]> = {};
     day?.exercises.forEach((exercise) => {
-      const prescription = currentPrescription(exercise, week);
-      const count = parseSetCount(prescription.workingSets);
-      const fromToday = existingLog?.exerciseLogs.find((e) => e.exerciseId === exercise.id)?.sets;
-      const lastSets = getLastExerciseLog(sessionLogs, exercise.name);
-      const sets: SetLog[] = [];
-      for (let i = 0; i < count; i++) {
-        if (fromToday?.[i]) sets.push(fromToday[i]);
-        else if (lastSets?.[i]) sets.push({ weightKg: lastSets[i].weightKg, reps: undefined });
-        else sets.push({});
-      }
-      init[exercise.id] = sets;
+      const fromToday = existingLog?.exerciseLogs.find((e) => e.exerciseId === exercise.id && e.exerciseName === exercise.name)?.sets;
+      init[exercise.id] = initialSets(exercise, week, sessionLogs, fromToday);
     });
     return init;
   });
+
+  // When an exercise is swapped from inside the log, its old entries no longer apply.
+  const namesRef = useRef<Record<string, string>>({});
+  useEffect(() => {
+    if (!day) return;
+    const changed = day.exercises.filter((e) => namesRef.current[e.id] && namesRef.current[e.id] !== e.name);
+    day.exercises.forEach((e) => { namesRef.current[e.id] = e.name; });
+    if (changed.length === 0) return;
+    setSetsByExercise((prev) => {
+      const next = { ...prev };
+      changed.forEach((e) => { next[e.id] = initialSets(e, week, sessionLogs); });
+      return next;
+    });
+  }, [day, week, sessionLogs]);
 
   const updateSet = (exerciseId: string, index: number, field: 'weightKg' | 'reps', text: string) => {
     const n = parseFloat(text);
@@ -80,71 +93,79 @@ export default function SessionLog() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          <ModalHeader title={day.name} />
-          <Text style={styles.dateLabel}>{formatLongDate(today)}</Text>
+      <FormScrollView contentContainerStyle={styles.scroll}>
+        <ModalHeader title={day.name} />
+        <Text style={styles.dateLabel}>{formatLongDate(today)}</Text>
 
-          {day.exercises.map((exercise) => {
-            const prescription = currentPrescription(exercise, week);
-            const lastSets = getLastExerciseLog(sessionLogs, exercise.name);
-            const sets = setsByExercise[exercise.id] ?? [];
-            return (
-              <Card key={exercise.id} style={{ marginBottom: 14 }}>
+        {day.exercises.map((exercise) => {
+          const prescription = currentPrescription(exercise, week);
+          const topSet = getLastTopSet(sessionLogs, exercise.name);
+          const sets = setsByExercise[exercise.id] ?? [];
+          return (
+            <Card key={exercise.id} style={{ marginBottom: 14 }}>
+              <View style={styles.titleRow}>
                 <Text style={styles.exerciseName}>{exercise.name}</Text>
-                <View style={styles.badgeRow}>
-                  {exercise.muscleGroups.map((m) => (
-                    <Badge key={m} label={m} color={getMuscleColor(m)} />
-                  ))}
-                </View>
-                <Text style={styles.targetText}>
-                  Target: {prescription.workingSets} × {prescription.reps} reps
-                  {prescription.lastRPE ? ` @ RPE ${prescription.lastRPE.replace('~', '')}` : ''}
-                </Text>
-                {lastSets && <Text style={styles.lastText}>Last time: {formatSets(lastSets, weightUnit)}</Text>}
-
-                <View style={styles.setHeaderRow}>
-                  <Text style={[styles.setHeaderLabel, { flex: 1 }]}>Set</Text>
-                  <Text style={styles.setHeaderLabel}>Weight ({weightUnit})</Text>
-                  <Text style={styles.setHeaderLabel}>Reps</Text>
-                </View>
-                {sets.map((set, i) => (
-                  <View key={i} style={styles.setRow}>
-                    <Text style={[styles.setLabel, { flex: 1 }]}>{i + 1}</Text>
-                    <TextInput
-                      value={set.weightKg != null ? String(kgToDisplayValue(set.weightKg, weightUnit)) : ''}
-                      onChangeText={(t) => updateSet(exercise.id, i, 'weightKg', t)}
-                      keyboardType="decimal-pad"
-                      placeholder="—"
-                      placeholderTextColor={colors.textFaint}
-                      style={styles.setInput}
-                    />
-                    <TextInput
-                      value={set.reps != null ? String(set.reps) : ''}
-                      onChangeText={(t) => updateSet(exercise.id, i, 'reps', t)}
-                      keyboardType="number-pad"
-                      placeholder="—"
-                      placeholderTextColor={colors.textFaint}
-                      style={styles.setInput}
-                    />
-                  </View>
+                <Pressable
+                  hitSlop={10}
+                  onPress={() => router.push({ pathname: '/modals/exercise-swap', params: { programId, dayId, exerciseId: exercise.id } })}
+                >
+                  <Text style={styles.swapLink}>Swap</Text>
+                </Pressable>
+              </View>
+              <View style={styles.badgeRow}>
+                {exercise.muscleGroups.map((m) => (
+                  <Badge key={m} label={m} color={getMuscleColor(m)} />
                 ))}
-              </Card>
-            );
-          })}
+              </View>
+              <Text style={styles.targetText}>
+                Target: {prescription.workingSets} × {prescription.reps} reps
+                {prescription.lastRPE ? ` @ RPE ${prescription.lastRPE.replace('~', '')}` : ''}
+              </Text>
+              {topSet && <Text style={styles.lastText}>Last best: {formatSet(topSet, weightUnit)}</Text>}
 
-          <Button label="Save Workout" onPress={onSave} style={{ marginTop: 8 }} />
-        </ScrollView>
-      </KeyboardAvoidingView>
+              <View style={styles.setHeaderRow}>
+                <Text style={[styles.setHeaderLabel, { flex: 1 }]}>Set</Text>
+                <Text style={styles.setHeaderLabel}>Weight ({weightUnit})</Text>
+                <Text style={styles.setHeaderLabel}>Reps</Text>
+              </View>
+              {sets.map((set, i) => (
+                <View key={i} style={styles.setRow}>
+                  <Text style={[styles.setLabel, { flex: 1 }]}>{i + 1}</Text>
+                  <TextInput
+                    value={set.weightKg != null ? String(kgToDisplayValue(set.weightKg, weightUnit)) : ''}
+                    onChangeText={(t) => updateSet(exercise.id, i, 'weightKg', t)}
+                    keyboardType="decimal-pad"
+                    placeholder="—"
+                    placeholderTextColor={colors.textFaint}
+                    style={styles.setInput}
+                  />
+                  <TextInput
+                    value={set.reps != null ? String(set.reps) : ''}
+                    onChangeText={(t) => updateSet(exercise.id, i, 'reps', t)}
+                    keyboardType="number-pad"
+                    placeholder="—"
+                    placeholderTextColor={colors.textFaint}
+                    style={styles.setInput}
+                  />
+                </View>
+              ))}
+            </Card>
+          );
+        })}
+
+        <Button label="Save Workout" onPress={onSave} style={{ marginTop: 8 }} />
+      </FormScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scroll: { padding: 22, paddingBottom: 48 },
+  scroll: { padding: 22 },
   dateLabel: { color: colors.textFaint, fontSize: 12, marginBottom: 18, textTransform: 'uppercase', letterSpacing: 0.6, marginTop: -8 },
-  exerciseName: { color: colors.textPrimary, fontSize: 16, fontWeight: '700' },
+  titleRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },
+  exerciseName: { color: colors.textPrimary, fontSize: 16, fontWeight: '700', flex: 1 },
+  swapLink: { color: colors.navyDeep, fontSize: 13, fontWeight: '600', marginTop: 2 },
   badgeRow: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 },
   targetText: { color: colors.textSecondary, fontSize: 12.5, marginTop: 6 },
   lastText: { color: colors.gold, fontSize: 12.5, marginTop: 3, fontWeight: '600' },

@@ -1,4 +1,5 @@
 import type { MuscleGroup, WorkoutProgram } from '@/types';
+import { createSeedProgram } from './seedProgram';
 import { WEAK_POINTS } from './weakPoints';
 
 export interface LibraryExercise {
@@ -7,7 +8,8 @@ export interface LibraryExercise {
 }
 
 /** A searchable catalog of every exercise name known to the app: everything currently
- * used across all of the user's programs, plus every option in the Weak Points table. */
+ * used across all of the user's programs, everything in the built-in program (so swapped-out
+ * exercises stay findable), plus every option in the Weak Points table. */
 export function buildExerciseLibrary(programs: WorkoutProgram[]): LibraryExercise[] {
   const byName = new Map<string, Set<MuscleGroup>>();
 
@@ -24,7 +26,7 @@ export function buildExerciseLibrary(programs: WorkoutProgram[]): LibraryExercis
     if (!displayNames.has(key)) displayNames.set(key, name.trim());
   };
 
-  programs.forEach((program) => {
+  [...programs, createSeedProgram()].forEach((program) => {
     program.days.forEach((day) => {
       day.exercises.forEach((exercise) => {
         if (exercise.isWeakPointSlot) return;

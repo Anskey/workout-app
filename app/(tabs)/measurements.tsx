@@ -10,7 +10,7 @@ import { ChevronRightIcon } from '@/components/Icons';
 import { useStore } from '@/store/useStore';
 import { compareToIdeal, getLatestMeasurement } from '@/logic/recommendations';
 import { formatLongDate } from '@/logic/dates';
-import { formatWeight } from '@/logic/units';
+import { formatLength, formatWeight } from '@/logic/units';
 
 export default function Measurements() {
   const profile = useStore((s) => s.profile);
@@ -40,7 +40,7 @@ export default function Measurements() {
             <Card style={{ marginBottom: 20 }}>
               <Text style={styles.dateLabel}>{formatLongDate(latest.date)}</Text>
               {comparisons.map((c) => (
-                <ComparisonBar key={c.key} comparison={c} />
+                <ComparisonBar key={c.key} comparison={c} unit={profile.lengthUnit} />
               ))}
             </Card>
           </>
@@ -61,8 +61,8 @@ export default function Measurements() {
                   <Text style={styles.rowDate}>{formatLongDate(m.date)}</Text>
                   <Text style={styles.rowMeta}>
                     {m.weightKg ? formatWeight(m.weightKg, profile.weightUnit) : '—'}
-                    {m.waistCm ? ` · waist ${m.waistCm}cm` : ''}
-                    {m.calfCm ? ` · calf ${m.calfCm}cm` : ''}
+                    {m.waistCm ? ` · waist ${formatLength(m.waistCm, profile.lengthUnit)}` : ''}
+                    {m.calfCm ? ` · calf ${formatLength(m.calfCm, profile.lengthUnit)}` : ''}
                   </Text>
                 </View>
                 <ChevronRightIcon color={colors.textFaint} />

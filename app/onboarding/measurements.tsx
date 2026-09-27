@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button, ScreenTitle, SectionHeader } from '@/theme/ui';
 import { Card } from '@/theme/Card';
+import { FormScrollView } from '@/components/FormScrollView';
 import { MeasurementField } from '@/components/MeasurementField';
 import { useOnboardingDraft } from '@/store/onboardingDraft';
-import { displayValueToKg } from '@/logic/units';
+import { measurementFromDisplay, measurementUnitLabel } from '@/logic/units';
 import type { MeasurementKey } from '@/types';
 
-const FIELDS: { key: MeasurementKey; label: string; unit?: string }[] = [
+const FIELDS: { key: MeasurementKey; label: string }[] = [
   { key: 'weightKg', label: 'Body Weight' },
   { key: 'neckCm', label: 'Neck' },
   { key: 'shouldersCm', label: 'Shoulders' },
@@ -29,16 +30,12 @@ export default function Measurements() {
   const onChange = (key: MeasurementKey, text: string) => {
     setValues((v) => ({ ...v, [key]: text }));
     const n = parseFloat(text);
-    if (!Number.isFinite(n)) {
-      draft.setMeasurement(key, undefined);
-      return;
-    }
-    draft.setMeasurement(key, key === 'weightKg' ? displayValueToKg(n, draft.weightUnit) : n);
+    draft.setMeasurement(key, Number.isFinite(n) ? measurementFromDisplay(key, n, draft.weightUnit, draft.lengthUnit) : undefined);
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <FormScrollView contentContainerStyle={styles.scroll}>
         <ScreenTitle subtitle="Take these with a soft tape, relaxed unless noted. Skip any you can't measure right now.">
           Starting Measurements
         </ScreenTitle>
@@ -49,7 +46,7 @@ export default function Measurements() {
             <MeasurementField
               key={f.key}
               label={f.label}
-              unit={f.key === 'weightKg' ? draft.weightUnit : f.unit}
+              unit={measurementUnitLabel(f.key, draft.weightUnit, draft.lengthUnit)}
               value={values[f.key] ?? ''}
               onChangeText={(t) => onChange(f.key, t)}
             />
@@ -57,12 +54,12 @@ export default function Measurements() {
         </Card>
 
         <Button label="See Comparison" onPress={() => router.push('/onboarding/results')} style={{ marginTop: 24 }} />
-      </ScrollView>
+      </FormScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scroll: { padding: 22, paddingBottom: 48 },
+  scroll: { padding: 22 },
 });

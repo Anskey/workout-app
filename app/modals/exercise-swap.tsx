@@ -5,11 +5,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { Badge, Button, Pill, SectionHeader } from '@/theme/ui';
 import { Card } from '@/theme/Card';
+import { FormScrollView } from '@/components/FormScrollView';
 import { ModalHeader } from '@/components/ModalHeader';
 import { useStore } from '@/store/useStore';
 import { buildExerciseLibrary } from '@/data/exerciseLibrary';
 import { getMuscleColor } from '@/data/muscleGroups';
+import { getDefaultProgram } from '@/data/seedProgram';
 import type { MuscleGroup } from '@/types';
+
+interface Alternative {
+  name: string;
+  muscleGroups: MuscleGroup[];
+  isOriginal?: boolean;
+}
 
 export default function ExerciseSwap() {
   const { programId, dayId, exerciseId } = useLocalSearchParams<{ programId: string; dayId: string; exerciseId: string }>();
@@ -27,13 +35,27 @@ export default function ExerciseSwap() {
     return map;
   }, [library]);
 
-  const programAlternatives = useMemo(
-    () =>
-      (existing?.substitutions ?? [])
-        .filter((name) => name.trim().length > 0 && !/^pick a lagging/i.test(name))
-        .map((name) => ({ name, muscleGroups: libraryByName.get(name.toLowerCase()) ?? existing?.muscleGroups ?? [] })),
-    [existing, libraryByName]
+  const original = useMemo(
+    () => getDefaultProgram(programId ?? '')?.days.find((d) => d.id === dayId)?.exercises.find((e) => e.id === exerciseId),
+    [programId, dayId, exerciseId]
   );
+
+  const programAlternatives = useMemo(() => {
+    const current = existing?.name.toLowerCase();
+    const list: Alternative[] = [];
+    // If this slot has been swapped, offer the program's original exercise first.
+    if (original && !original.isWeakPointSlot && original.name.toLowerCase() !== current) {
+      list.push({ name: original.name, muscleGroups: original.muscleGroups, isOriginal: true });
+    }
+    (existing?.substitutions ?? [])
+      .filter((name) => name.trim().length > 0 && !/^pick a lagging/i.test(name))
+      .forEach((name) => {
+        const key = name.toLowerCase();
+        if (key === current || list.some((a) => a.name.toLowerCase() === key)) return;
+        list.push({ name, muscleGroups: libraryByName.get(key) ?? existing?.muscleGroups ?? [] });
+      });
+    return list;
+  }, [existing, original, libraryByName]);
   const programAlternativeNames = useMemo(() => new Set(programAlternatives.map((a) => a.name.toLowerCase())), [programAlternatives]);
 
   const musclesPresent = useMemo(() => {
@@ -71,9 +93,9 @@ export default function ExerciseSwap() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <FormScrollView contentContainerStyle={styles.scroll}>
         <ModalHeader title="Swap Exercise" />
-        {existing && <Text style={styles.subtitle}>Replacing "{existing.name}" — same sets/reps, different movement.</Text>}
+        {existing && <Text style={styles.subtitle}>Replacing “{existing.name}” — same sets/reps, different movement.</Text>}
 
         {programAlternatives.length > 0 && (
           <>
@@ -86,6 +108,7 @@ export default function ExerciseSwap() {
                   style={[styles.row, i !== programAlternatives.length - 1 && styles.rowBorder]}
                 >
                   <Text style={styles.rowName}>{item.name}</Text>
+                  {item.isOriginal && <Text style={styles.originalTag}>Original program exercise</Text>}
                   <View style={styles.badgeRow}>
                     {item.muscleGroups.map((m) => (
                       <Badge key={m} label={m} color={getMuscleColor(m)} />
@@ -135,14 +158,14 @@ export default function ExerciseSwap() {
         </Card>
 
         <Button label="Can't find it? Edit manually" variant="ghost" onPress={onEditManually} style={{ marginTop: 18 }} />
-      </ScrollView>
+      </FormScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scroll: { padding: 22, paddingBottom: 48 },
+  scroll: { padding: 22 },
   subtitle: { color: colors.textSecondary, fontSize: 13.5, marginTop: -10, marginBottom: 16 },
   input: {
     color: colors.textPrimary,
@@ -159,5 +182,6 @@ const styles = StyleSheet.create({
   row: { paddingHorizontal: 16, paddingVertical: 14 },
   rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.divider },
   rowName: { color: colors.textPrimary, fontSize: 15, fontWeight: '600', marginBottom: 6 },
+  originalTag: { color: colors.gold, fontSize: 12, fontWeight: '600', marginTop: -3, marginBottom: 6 },
   badgeRow: { flexDirection: 'row', flexWrap: 'wrap' },
 });

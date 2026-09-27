@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput } from 'react-native';
+import { Alert, StyleSheet, TextInput } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { Button, SectionHeader } from '@/theme/ui';
 import { Card } from '@/theme/Card';
+import { FormScrollView } from '@/components/FormScrollView';
 import { ModalHeader } from '@/components/ModalHeader';
 import { generateId, useStore } from '@/store/useStore';
 
@@ -38,8 +39,7 @@ export default function DayEditor() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <FormScrollView contentContainerStyle={styles.scroll}>
           <ModalHeader title={existing ? 'Edit Day' : 'New Day'} />
 
           <Card>
@@ -55,15 +55,14 @@ export default function DayEditor() {
 
           <Button label="Save" onPress={onSave} disabled={!name.trim()} style={{ marginTop: 20 }} />
           {existing && <Button label="Delete Day" variant="ghost" onPress={onDelete} style={{ marginTop: 14 }} />}
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </FormScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scroll: { padding: 22, paddingBottom: 48 },
+  scroll: { padding: 22 },
   input: {
     color: colors.textPrimary,
     fontSize: 16,

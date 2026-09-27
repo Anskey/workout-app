@@ -19,10 +19,23 @@ export function getLastExerciseLog(sessionLogs: WorkoutSessionLog[], exerciseNam
   return undefined;
 }
 
-export function formatSets(sets: SetLog[] | undefined, unit: WeightUnit): string {
-  if (!sets || sets.length === 0) return '';
+/** The heaviest set (ties broken by reps) from the last session that included this exercise. */
+export function getLastTopSet(sessionLogs: WorkoutSessionLog[], exerciseName: string): SetLog | undefined {
+  const sets = getLastExerciseLog(sessionLogs, exerciseName);
+  if (!sets) return undefined;
   return sets
     .filter((s) => s.weightKg != null || s.reps != null)
-    .map((s) => `${s.weightKg != null ? kgToDisplayValue(s.weightKg, unit) : '—'}${unit}×${s.reps ?? '—'}`)
-    .join(', ');
+    .reduce<SetLog | undefined>((best, s) => {
+      if (!best) return s;
+      const w = s.weightKg ?? 0;
+      const bw = best.weightKg ?? 0;
+      if (w !== bw) return w > bw ? s : best;
+      return (s.reps ?? 0) > (best.reps ?? 0) ? s : best;
+    }, undefined);
+}
+
+export function formatSet(set: SetLog | undefined, unit: WeightUnit): string {
+  if (!set) return '';
+  const weight = set.weightKg != null ? `${kgToDisplayValue(set.weightKg, unit)}${unit}` : 'bodyweight';
+  return set.reps != null ? `${weight} × ${set.reps}` : weight;
 }

@@ -24,6 +24,7 @@ export default function Results() {
     activityLevel: draft.activityLevel,
     onboardingComplete: false,
     weightUnit: draft.weightUnit,
+    lengthUnit: draft.lengthUnit,
   };
 
   const comparisons = compareToIdeal({ id: 'draft', date: todayISODate(), ...draft.measurements }, profile);
@@ -48,7 +49,7 @@ export default function Results() {
           <Card>
             <SectionHeader>vs. Reference</SectionHeader>
             {comparisons.map((c) => (
-              <ComparisonBar key={c.key} comparison={c} />
+              <ComparisonBar key={c.key} comparison={c} unit={draft.lengthUnit} />
             ))}
           </Card>
         )}

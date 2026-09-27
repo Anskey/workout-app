@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type {
@@ -25,6 +25,7 @@ const DEFAULT_PROFILE: UserProfile = {
   activityLevel: 'moderate',
   onboardingComplete: false,
   weightUnit: 'kg',
+  lengthUnit: 'cm',
 };
 
 interface AppState {
@@ -215,7 +216,7 @@ export const useStore = create<AppState>()(
     {
       name: 'workout-app-storage',
       storage: createJSONStorage(() => AsyncStorage),
-      version: 4,
+      version: 5,
       migrate: (persistedState: unknown, version: number) => {
         let state = (persistedState ?? {}) as { programs?: WorkoutProgram[]; profile?: UserProfile; [key: string]: unknown };
         if (version < 3) {
@@ -226,8 +227,16 @@ export const useStore = create<AppState>()(
           else programs.unshift(seed);
           state = { ...state, programs, sessionLogs: Array.isArray((state as any).sessionLogs) ? (state as any).sessionLogs : [] };
         }
-        if (version < 4) {
-          state = { ...state, profile: { ...DEFAULT_PROFILE, ...state.profile, weightUnit: state.profile?.weightUnit ?? 'kg' } };
+        if (version < 5) {
+          state = {
+            ...state,
+            profile: {
+              ...DEFAULT_PROFILE,
+              ...state.profile,
+              weightUnit: state.profile?.weightUnit ?? 'kg',
+              lengthUnit: state.profile?.lengthUnit ?? 'cm',
+            },
+          };
         }
         return state;
       },
@@ -241,12 +250,9 @@ export function useActiveProgram() {
   return programs.find((p) => p.id === activeProgramId) ?? programs[0];
 }
 
+const subscribeHydration = (onChange: () => void) => useStore.persist.onFinishHydration(onChange);
+const getHydrated = () => useStore.persist.hasHydrated();
+
 export function useHasHydrated(): boolean {
-  const [hydrated, setHydrated] = useState(useStore.persist.hasHydrated());
-  useEffect(() => {
-    const unsub = useStore.persist.onFinishHydration(() => setHydrated(true));
-    if (useStore.persist.hasHydrated()) setHydrated(true);
-    return unsub;
-  }, []);
-  return hydrated;
+  return useSyncExternalStore(subscribeHydration, getHydrated, getHydrated);
 }

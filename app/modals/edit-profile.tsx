@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { Button, Pill, SectionHeader } from '@/theme/ui';
 import { Card } from '@/theme/Card';
+import { FormScrollView } from '@/components/FormScrollView';
+import { HeightInput } from '@/components/HeightInput';
 import { ModalHeader } from '@/components/ModalHeader';
 import { useStore } from '@/store/useStore';
-import type { ActivityLevel, Goal, Sex, WeightUnit } from '@/types';
+import type { ActivityLevel, Goal, LengthUnit, Sex, WeightUnit } from '@/types';
 
 const GOALS: { key: Goal; label: string }[] = [
   { key: 'bulk', label: 'Build Muscle' },
@@ -28,36 +30,41 @@ export default function EditProfile() {
   const setProfile = useStore((s) => s.setProfile);
 
   const [name, setName] = useState(profile.name);
-  const [heightCm, setHeightCm] = useState(String(profile.heightCm));
+  const [heightCm, setHeightCm] = useState(profile.heightCm);
   const [sex, setSex] = useState<Sex>(profile.sex);
   const [goal, setGoal] = useState<Goal>(profile.goal);
   const [activityLevel, setActivityLevel] = useState<ActivityLevel>(profile.activityLevel);
   const [weightUnit, setWeightUnit] = useState<WeightUnit>(profile.weightUnit);
+  const [lengthUnit, setLengthUnit] = useState<LengthUnit>(profile.lengthUnit);
 
   const onSave = () => {
-    setProfile({ name, heightCm: Number(heightCm) || profile.heightCm, sex, goal, activityLevel, weightUnit });
+    setProfile({ name, heightCm: heightCm || profile.heightCm, sex, goal, activityLevel, weightUnit, lengthUnit });
     router.back();
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <FormScrollView contentContainerStyle={styles.scroll}>
         <ModalHeader title="Profile & Goals" />
 
         <Card>
           <SectionHeader>Name</SectionHeader>
           <TextInput value={name} onChangeText={setName} placeholderTextColor={colors.textFaint} style={styles.input} />
 
-          <SectionHeader>Height</SectionHeader>
-          <View style={styles.inputRow}>
-            <TextInput
-              value={heightCm}
-              onChangeText={(t) => setHeightCm(t.replace(/[^0-9]/g, ''))}
-              keyboardType="number-pad"
-              style={[styles.input, { flex: 1, marginBottom: 0 }]}
-            />
-            <Text style={styles.unit}>cm</Text>
+          <SectionHeader>Units</SectionHeader>
+          <View style={styles.pillRow}>
+            {(['kg', 'lb'] as WeightUnit[]).map((u) => (
+              <Pill key={u} label={u === 'kg' ? 'Kilograms' : 'Pounds'} active={weightUnit === u} onPress={() => setWeightUnit(u)} />
+            ))}
           </View>
+          <View style={styles.pillRow}>
+            {(['cm', 'in'] as LengthUnit[]).map((u) => (
+              <Pill key={u} label={u === 'cm' ? 'Centimetres' : 'Feet / Inches'} active={lengthUnit === u} onPress={() => setLengthUnit(u)} />
+            ))}
+          </View>
+
+          <SectionHeader>Height</SectionHeader>
+          <HeightInput heightCm={heightCm} unit={lengthUnit} onChange={setHeightCm} />
 
           <SectionHeader>Sex</SectionHeader>
           <View style={styles.pillRow}>
@@ -79,24 +86,17 @@ export default function EditProfile() {
               <Pill key={a.key} label={a.label} active={activityLevel === a.key} onPress={() => setActivityLevel(a.key)} />
             ))}
           </View>
-
-          <SectionHeader>Weight Unit</SectionHeader>
-          <View style={styles.pillRow}>
-            {(['kg', 'lb'] as WeightUnit[]).map((u) => (
-              <Pill key={u} label={u === 'kg' ? 'Kilograms' : 'Pounds'} active={weightUnit === u} onPress={() => setWeightUnit(u)} />
-            ))}
-          </View>
         </Card>
 
         <Button label="Save" onPress={onSave} style={{ marginTop: 20 }} />
-      </ScrollView>
+      </FormScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scroll: { padding: 22, paddingBottom: 48 },
+  scroll: { padding: 22 },
   input: {
     color: colors.textPrimary,
     fontSize: 16,
@@ -108,7 +108,5 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     marginBottom: 8,
   },
-  inputRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
-  unit: { color: colors.textFaint, fontSize: 13 },
   pillRow: { flexDirection: 'row', marginBottom: 10 },
 });

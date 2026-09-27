@@ -32,7 +32,7 @@ const LAG_THRESHOLD_PCT = 8;
 export function compareToIdeal(latest: MeasurementEntry | undefined, profile: UserProfile): MeasurementComparison[] {
   if (!latest) return [];
   const ideal = getIdealMeasurements(profile.heightCm, profile.sex);
-  const keys = Object.keys(ideal) as Array<Exclude<MeasurementKey, 'weightKg'>>;
+  const keys = Object.keys(ideal) as Exclude<MeasurementKey, 'weightKg'>[];
   const out: MeasurementComparison[] = [];
   keys.forEach((key) => {
     const actual = latest[key];

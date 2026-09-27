@@ -1,7 +1,9 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { colors } from '@/theme/colors';
+import { formatLength } from '@/logic/units';
 import type { MeasurementComparison } from '@/logic/recommendations';
+import type { LengthUnit } from '@/types';
 
 const STATUS_COLOR: Record<MeasurementComparison['status'], string> = {
   lagging: colors.danger,
@@ -9,7 +11,7 @@ const STATUS_COLOR: Record<MeasurementComparison['status'], string> = {
   exceeds: colors.gold,
 };
 
-export function ComparisonBar({ comparison }: { comparison: MeasurementComparison }) {
+export function ComparisonBar({ comparison, unit }: { comparison: MeasurementComparison; unit: LengthUnit }) {
   const { label, actual, ideal, diffPct, status } = comparison;
   const color = STATUS_COLOR[status];
   const ratio = Math.max(0.1, Math.min(1.6, actual / ideal));
@@ -32,7 +34,7 @@ export function ComparisonBar({ comparison }: { comparison: MeasurementCompariso
       </View>
       <View style={styles.footerRow}>
         <Text style={styles.footerText}>
-          {actual} cm · reference {ideal} cm ({diffPct > 0 ? '+' : ''}
+          {formatLength(actual, unit)} · reference {formatLength(ideal, unit)} ({diffPct > 0 ? '+' : ''}
           {diffPct.toFixed(0)}%)
         </Text>
       </View>

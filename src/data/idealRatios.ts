@@ -38,7 +38,7 @@ export function getIdealMeasurements(heightCm: number, sex: Sex): Record<Exclude
   const refHeight = sex === 'female' ? FEMALE_REF_HEIGHT_CM : MALE_REF_HEIGHT_CM;
   const scale = heightCm / refHeight;
   const out = {} as Record<Exclude<MeasurementKey, 'weightKg'>, number>;
-  (Object.keys(ref) as Array<Exclude<MeasurementKey, 'weightKg'>>).forEach((key) => {
+  (Object.keys(ref) as Exclude<MeasurementKey, 'weightKg'>[]).forEach((key) => {
     out[key] = Math.round(ref[key] * scale * 10) / 10;
   });
   return out;

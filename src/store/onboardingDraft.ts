@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { ActivityLevel, Goal, MeasurementKey, Sex, WeightUnit } from '@/types';
+import type { ActivityLevel, Goal, LengthUnit, MeasurementKey, Sex, WeightUnit } from '@/types';
 
 interface OnboardingDraft {
   name: string;
@@ -8,6 +8,7 @@ interface OnboardingDraft {
   goal: Goal;
   activityLevel: ActivityLevel;
   weightUnit: WeightUnit;
+  lengthUnit: LengthUnit;
   measurements: Partial<Record<MeasurementKey, number>>;
   setField: <K extends keyof Omit<OnboardingDraft, 'measurements' | 'setField' | 'setMeasurement'>>(
     key: K,
@@ -23,6 +24,7 @@ export const useOnboardingDraft = create<OnboardingDraft>((set) => ({
   goal: 'bulk',
   activityLevel: 'moderate',
   weightUnit: 'kg',
+  lengthUnit: 'cm',
   measurements: {},
   setField: (key, value) => set({ [key]: value } as never),
   setMeasurement: (key, value) => set((s) => ({ measurements: { ...s.measurements, [key]: value } })),

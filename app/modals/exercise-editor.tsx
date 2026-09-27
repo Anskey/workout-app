@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { Button, Pill, SectionHeader } from '@/theme/ui';
 import { Card } from '@/theme/Card';
+import { FormScrollView } from '@/components/FormScrollView';
 import { ModalHeader } from '@/components/ModalHeader';
 import { MeasurementField } from '@/components/MeasurementField';
 import { generateId, useStore } from '@/store/useStore';
@@ -34,7 +35,6 @@ export default function ExerciseEditor() {
   const [earlyRPE, setEarlyRPE] = useState(source?.earlyRPE ?? '');
   const [lastRPE, setLastRPE] = useState(source?.lastRPE ?? '');
   const [rest, setRest] = useState(source?.rest ?? '');
-  const [substitutions, setSubstitutions] = useState(existing?.substitutions?.join(', ') ?? '');
 
   const toggleMuscle = (m: MuscleGroup) =>
     setMuscles((prev) => (prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]));
@@ -64,7 +64,7 @@ export default function ExerciseEditor() {
       name: name.trim(),
       muscleGroups: muscles,
       ...(hasWeeklyProgression ? { warmupSets: existing?.warmupSets, workingSets: existing?.workingSets ?? '2', reps: existing?.reps ?? '8-12', earlyRPE: existing?.earlyRPE, lastRPE: existing?.lastRPE, rest: existing?.rest } : prescription),
-      substitutions: substitutions.split(',').map((s) => s.trim()).filter(Boolean),
+      substitutions: existing?.substitutions ?? [],
       isWeakPointSlot: existing?.isWeakPointSlot,
       weeklyProgression,
     });
@@ -81,8 +81,7 @@ export default function ExerciseEditor() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <FormScrollView contentContainerStyle={styles.scroll}>
           <ModalHeader title={existing ? 'Edit Exercise' : 'New Exercise'} />
 
           <Card style={{ marginBottom: 16 }}>
@@ -103,11 +102,11 @@ export default function ExerciseEditor() {
             </View>
           </Card>
 
-          <Card style={{ marginBottom: 16 }}>
+          <Card>
             <SectionHeader>{hasWeeklyProgression ? `Prescription — Week ${currentWeek}` : 'Prescription'}</SectionHeader>
             {hasWeeklyProgression && (
               <Text style={styles.weekHint}>
-                This exercise has its own week-by-week plan. You're editing Week {currentWeek} of {day?.blockLabel ?? 'this block'} —
+                This exercise has its own week-by-week plan. You’re editing Week {currentWeek} of {day?.blockLabel ?? 'this block'} —
                 switch weeks from the Program tab to edit a different one.
               </Text>
             )}
@@ -119,29 +118,16 @@ export default function ExerciseEditor() {
             <MeasurementField label="Rest" unit="" value={rest} onChangeText={setRest} placeholder="~2 min" />
           </Card>
 
-          <Card>
-            <SectionHeader>Substitutions (comma separated)</SectionHeader>
-            <TextInput
-              value={substitutions}
-              onChangeText={setSubstitutions}
-              placeholder="Machine Pulldown, Cable Pullover"
-              placeholderTextColor={colors.textFaint}
-              style={styles.input}
-              multiline
-            />
-          </Card>
-
           <Button label="Save" onPress={onSave} disabled={!name.trim()} style={{ marginTop: 20 }} />
           {existing && <Button label="Delete Exercise" variant="ghost" onPress={onDelete} style={{ marginTop: 14 }} />}
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </FormScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scroll: { padding: 22, paddingBottom: 48 },
+  scroll: { padding: 22 },
   input: {
     color: colors.textPrimary,
     fontSize: 16,

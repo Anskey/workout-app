@@ -1,18 +1,19 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text } from 'react-native';
+import { Alert, StyleSheet, Text } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { Button, SectionHeader } from '@/theme/ui';
 import { Card } from '@/theme/Card';
+import { FormScrollView } from '@/components/FormScrollView';
 import { ModalHeader } from '@/components/ModalHeader';
 import { MeasurementField } from '@/components/MeasurementField';
 import { useStore } from '@/store/useStore';
 import { formatLongDate, todayISODate } from '@/logic/dates';
-import { displayValueToKg, kgToDisplayValue } from '@/logic/units';
+import { measurementFromDisplay, measurementToDisplay, measurementUnitLabel } from '@/logic/units';
 import type { MeasurementKey } from '@/types';
 
-const FIELDS: { key: MeasurementKey; label: string; unit?: string }[] = [
+const FIELDS: { key: MeasurementKey; label: string }[] = [
   { key: 'weightKg', label: 'Body Weight' },
   { key: 'neckCm', label: 'Neck' },
   { key: 'shouldersCm', label: 'Shoulders' },
@@ -31,8 +32,9 @@ export default function MeasurementLog() {
   const addMeasurement = useStore((s) => s.addMeasurement);
   const updateMeasurement = useStore((s) => s.updateMeasurement);
   const deleteMeasurement = useStore((s) => s.deleteMeasurement);
-
   const weightUnit = useStore((s) => s.profile.weightUnit);
+  const lengthUnit = useStore((s) => s.profile.lengthUnit);
+
   const existing = useMemo(() => measurements.find((m) => m.id === entryId), [measurements, entryId]);
   const date = existing?.date ?? todayISODate();
 
@@ -40,8 +42,7 @@ export default function MeasurementLog() {
     const init: Record<string, string> = {};
     FIELDS.forEach((f) => {
       const v = existing?.[f.key];
-      if (v == null) return;
-      init[f.key] = String(f.key === 'weightKg' ? kgToDisplayValue(v, weightUnit) : v);
+      if (v != null) init[f.key] = String(measurementToDisplay(f.key, v, weightUnit, lengthUnit));
     });
     return init;
   });
@@ -52,8 +53,7 @@ export default function MeasurementLog() {
     const parsed: Partial<Record<MeasurementKey, number>> = {};
     FIELDS.forEach((f) => {
       const n = parseFloat(values[f.key] ?? '');
-      if (!Number.isFinite(n)) return;
-      parsed[f.key] = f.key === 'weightKg' ? displayValueToKg(n, weightUnit) : n;
+      if (Number.isFinite(n)) parsed[f.key] = measurementFromDisplay(f.key, n, weightUnit, lengthUnit);
     });
     if (existing) {
       updateMeasurement({ ...existing, ...parsed });
@@ -73,34 +73,32 @@ export default function MeasurementLog() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          <ModalHeader title="Measurements" />
-          <Text style={styles.dateLabel}>{formatLongDate(date)}</Text>
+      <FormScrollView contentContainerStyle={styles.scroll}>
+        <ModalHeader title="Measurements" />
+        <Text style={styles.dateLabel}>{formatLongDate(date)}</Text>
 
-          <Card>
-            <SectionHeader>Values</SectionHeader>
-            {FIELDS.map((f) => (
-              <MeasurementField
-                key={f.key}
-                label={f.label}
-                unit={f.key === 'weightKg' ? weightUnit : f.unit}
-                value={values[f.key] ?? ''}
-                onChangeText={(t) => onChange(f.key, t)}
-              />
-            ))}
-          </Card>
+        <Card>
+          <SectionHeader>Values</SectionHeader>
+          {FIELDS.map((f) => (
+            <MeasurementField
+              key={f.key}
+              label={f.label}
+              unit={measurementUnitLabel(f.key, weightUnit, lengthUnit)}
+              value={values[f.key] ?? ''}
+              onChangeText={(t) => onChange(f.key, t)}
+            />
+          ))}
+        </Card>
 
-          <Button label="Save" onPress={onSave} style={{ marginTop: 20 }} />
-          {existing && <Button label="Delete Entry" variant="ghost" onPress={onDelete} style={{ marginTop: 14 }} />}
-        </ScrollView>
-      </KeyboardAvoidingView>
+        <Button label="Save" onPress={onSave} style={{ marginTop: 20 }} />
+        {existing && <Button label="Delete Entry" variant="ghost" onPress={onDelete} style={{ marginTop: 14 }} />}
+      </FormScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scroll: { padding: 22, paddingBottom: 48 },
+  scroll: { padding: 22 },
   dateLabel: { color: colors.textFaint, fontSize: 12, marginBottom: 14, textTransform: 'uppercase', letterSpacing: 0.6, marginTop: -8 },
 });
