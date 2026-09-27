@@ -11,7 +11,8 @@ import { useStore } from '@/store/useStore';
 import { compareToIdeal, getLatestMeasurement } from '@/logic/recommendations';
 import { formatLongDate } from '@/logic/dates';
 import { formatLength, formatWeight } from '@/logic/units';
-import { IDEAL_PRESETS } from '@/data/idealRatios';
+import { IDEAL_PRESETS, getIdealMeasurements } from '@/data/idealRatios';
+import { BodyComparisonFigure } from '@/components/BodyComparisonFigure';
 
 export default function Measurements() {
   const profile = useStore((s) => s.profile);
@@ -20,6 +21,7 @@ export default function Measurements() {
   const sorted = [...measurements].sort((a, b) => b.date.localeCompare(a.date));
   const latest = getLatestMeasurement(measurements);
   const comparisons = compareToIdeal(latest, profile);
+  const ideal = getIdealMeasurements(profile.heightCm, profile.sex, profile.idealPreset);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -35,17 +37,28 @@ export default function Measurements() {
 
         <Button label="Log New Measurements" onPress={() => router.push('/modals/measurement-log')} style={{ marginBottom: 20 }} />
 
-        {latest && comparisons.length > 0 && (
-          <>
-            <SectionHeader>Latest vs. {IDEAL_PRESETS[profile.idealPreset].label}</SectionHeader>
-            <Card style={{ marginBottom: 20 }}>
-              <Text style={styles.dateLabel}>{formatLongDate(latest.date)}</Text>
+        <SectionHeader
+          right={
+            latest ? (
+              <Pressable onPress={() => router.push({ pathname: '/modals/measurement-log', params: { entryId: latest.id } })}>
+                <Text style={styles.editProfileLink}>Edit Latest</Text>
+              </Pressable>
+            ) : undefined
+          }
+        >
+          Latest vs. {IDEAL_PRESETS[profile.idealPreset].label}
+        </SectionHeader>
+        <Card style={{ marginBottom: 20 }}>
+          {latest && <Text style={styles.dateLabel}>{formatLongDate(latest.date)}</Text>}
+          <BodyComparisonFigure actual={latest} ideal={ideal} />
+          {comparisons.length > 0 && (
+            <View style={{ marginTop: 10 }}>
               {comparisons.map((c) => (
                 <ComparisonBar key={c.key} comparison={c} unit={profile.lengthUnit} />
               ))}
-            </Card>
-          </>
-        )}
+            </View>
+          )}
+        </Card>
 
         <SectionHeader>History</SectionHeader>
         <Card>
@@ -66,6 +79,7 @@ export default function Measurements() {
                     {m.calfCm ? ` · calf ${formatLength(m.calfCm, profile.lengthUnit)}` : ''}
                   </Text>
                 </View>
+                <Text style={styles.editHint}>Edit</Text>
                 <ChevronRightIcon color={colors.textFaint} />
               </Pressable>
             ))
@@ -87,4 +101,5 @@ const styles = StyleSheet.create({
   rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.divider },
   rowDate: { color: colors.textPrimary, fontSize: 14.5, fontWeight: '600' },
   rowMeta: { color: colors.textSecondary, fontSize: 12.5, marginTop: 3 },
+  editHint: { color: colors.gold, fontSize: 12, fontWeight: '600', marginRight: 4 },
 });
