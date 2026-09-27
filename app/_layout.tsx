@@ -8,8 +8,10 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useFonts, CormorantGaramond_600SemiBold, CormorantGaramond_700Bold } from '@expo-google-fonts/cormorant-garamond';
 import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import { Background } from '@/theme/Background';
+import { initCloudSync } from '@/logic/cloudSync';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
+initCloudSync();
 
 const navTheme = {
   ...DefaultTheme,
@@ -71,6 +73,7 @@ export default function RootLayout() {
             <Stack.Screen name="modals/day-editor" options={{ presentation: 'modal' }} />
             <Stack.Screen name="modals/program-picker" options={{ presentation: 'modal' }} />
             <Stack.Screen name="modals/edit-profile" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="modals/account" options={{ presentation: 'modal' }} />
           </Stack>
         </Background>
         </ThemeProvider>

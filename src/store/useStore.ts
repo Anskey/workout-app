@@ -67,6 +67,26 @@ interface AppState {
 
   upsertSessionLog: (entry: Omit<WorkoutSessionLog, 'id'> & { id?: string }) => void;
   deleteSessionLog: (id: string) => void;
+
+  /** Replaces the syncable data fields wholesale with a snapshot pulled from the
+   * cloud (e.g. on sign-in on a new device) — used by the cloud-sync module. */
+  hydrateFromCloud: (data: SyncableState) => void;
+}
+
+/** The subset of AppState that gets mirrored to Firestore for cross-device sync —
+ * everything except the action functions. */
+export interface SyncableState {
+  profile: UserProfile;
+  programs: WorkoutProgram[];
+  activeProgramId: string;
+  measurements: MeasurementEntry[];
+  nutritionLogs: NutritionEntry[];
+  sessionLogs: WorkoutSessionLog[];
+}
+
+export function pickSyncableState(state: AppState): SyncableState {
+  const { profile, programs, activeProgramId, measurements, nutritionLogs, sessionLogs } = state;
+  return { profile, programs, activeProgramId, measurements, nutritionLogs, sessionLogs };
 }
 
 export const useStore = create<AppState>()(
@@ -214,6 +234,8 @@ export const useStore = create<AppState>()(
           return { sessionLogs: [...s.sessionLogs, { ...entry, id: generateId() } as WorkoutSessionLog] };
         }),
       deleteSessionLog: (id) => set((s) => ({ sessionLogs: s.sessionLogs.filter((l) => l.id !== id) })),
+
+      hydrateFromCloud: (data) => set(data),
     }),
     {
       name: 'workout-app-storage',

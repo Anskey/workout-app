@@ -132,6 +132,7 @@ export default function EditProfile() {
         </Card>
 
         <Button label="Save" onPress={onSave} style={{ marginTop: 20 }} />
+        <Button label="Account & Sync" variant="ghost" onPress={() => router.push('/modals/account')} style={{ marginTop: 14 }} />
       </FormScrollView>
     </SafeAreaView>
   );
