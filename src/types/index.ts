@@ -100,6 +100,14 @@ export type MeasurementKey =
 export type MeasurementEntry = {
   id: string;
   date: string;
+  // Optional left/right breakdowns for limbs where a dominant-side difference is common
+  // and worth tracking. `bicepCm`/`forearmCm` above stay the single canonical value (used
+  // by ideal-ratio comparisons and the body figure) — auto-averaged from these when both
+  // sides are entered, or editable directly if you don't care about the split that day.
+  bicepLCm?: number;
+  bicepRCm?: number;
+  forearmLCm?: number;
+  forearmRCm?: number;
 } & Partial<Record<MeasurementKey, number>>;
 
 export interface NutritionEntry {
@@ -108,6 +116,7 @@ export interface NutritionEntry {
   calories?: number;
   proteinG?: number;
   weightKg?: number;
+  steps?: number;
 }
 
 export interface SetLog {

@@ -25,17 +25,20 @@ export default function NutritionLog() {
   const [calories, setCalories] = useState(existing?.calories ? String(existing.calories) : '');
   const [proteinG, setProteinG] = useState(existing?.proteinG ? String(existing.proteinG) : '');
   const [weight, setWeight] = useState(existing?.weightKg ? String(kgToDisplayValue(existing.weightKg, weightUnit)) : '');
+  const [steps, setSteps] = useState(existing?.steps ? String(existing.steps) : '');
 
   const onSave = () => {
     const cal = parseFloat(calories);
     const pro = parseFloat(proteinG);
     const wt = parseFloat(weight);
+    const stp = parseFloat(steps);
     upsertNutritionLog({
       id: existing?.id,
       date,
       calories: Number.isFinite(cal) ? cal : undefined,
       proteinG: Number.isFinite(pro) ? pro : undefined,
       weightKg: Number.isFinite(wt) ? displayValueToKg(wt, weightUnit) : undefined,
+      steps: Number.isFinite(stp) ? stp : undefined,
     });
     router.back();
   };
@@ -59,6 +62,7 @@ export default function NutritionLog() {
             <MeasurementField label="Calories" unit="kcal" value={calories} onChangeText={setCalories} />
             <MeasurementField label="Protein" unit="g" value={proteinG} onChangeText={setProteinG} />
             <MeasurementField label="Weight" unit={weightUnit} value={weight} onChangeText={setWeight} />
+            <MeasurementField label="Steps" unit="steps" value={steps} onChangeText={setSteps} />
           </Card>
 
           <Button label="Save" onPress={onSave} style={{ marginTop: 20 }} />
