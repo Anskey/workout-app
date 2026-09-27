@@ -23,7 +23,10 @@ export function parseSetCount(workingSets: string | undefined): number {
   return Math.min(6, Math.max(1, n));
 }
 
-/** Most recent session log (by date) that includes a log for the given exercise name. */
+/** Most recent session log (by date) that includes a log for the given exercise name.
+ * Name-based, so it misses history logged under a different exercise name for the same
+ * slot (a substitution, or the underlying program prescribing a different exercise in a
+ * later week) — prefer getLastSlotLog when a dayId/exerciseId are available. */
 export function getLastExerciseLog(sessionLogs: WorkoutSessionLog[], exerciseName: string): SetLog[] | undefined {
   const sorted = [...sessionLogs].sort((a, b) => b.date.localeCompare(a.date));
   for (const log of sorted) {
@@ -69,6 +72,47 @@ export function getExerciseHistory(sessionLogs: WorkoutSessionLog[], exerciseNam
     if (top) points.push({ date: log.date, topSet: top });
   });
   return points;
+}
+
+export interface SlotHistoryEntry {
+  date: string;
+  exerciseName: string;
+  sets: SetLog[];
+}
+
+/** Every past logged entry for this exact program slot (day + exercise id), oldest first —
+ * regardless of what exercise name was used each time. A slot's actual exercise can change
+ * over time (a substitution, or the underlying program prescribing something different in
+ * a later week), so matching by slot instead of by name is what makes "last time" and the
+ * lift-history chart find that history at all. */
+export function getSlotHistory(sessionLogs: WorkoutSessionLog[], dayId: string, exerciseId: string): SlotHistoryEntry[] {
+  const sorted = [...sessionLogs].sort((a, b) => a.date.localeCompare(b.date));
+  const points: SlotHistoryEntry[] = [];
+  sorted.forEach((log) => {
+    if (log.dayId !== dayId) return;
+    const match = log.exerciseLogs.find((e) => e.exerciseId === exerciseId);
+    if (match && match.sets.length > 0) points.push({ date: log.date, exerciseName: match.exerciseName, sets: match.sets });
+  });
+  return points;
+}
+
+/** The most recently logged entry for this exact slot, whatever exercise it was at the time. */
+export function getLastSlotLog(sessionLogs: WorkoutSessionLog[], dayId: string, exerciseId: string): SlotHistoryEntry | undefined {
+  const history = getSlotHistory(sessionLogs, dayId, exerciseId);
+  return history[history.length - 1];
+}
+
+/** The heaviest set (ties broken by reps) from the last time this slot was logged. */
+export function getLastSlotTopSet(sessionLogs: WorkoutSessionLog[], dayId: string, exerciseId: string): SetLog | undefined {
+  const last = getLastSlotLog(sessionLogs, dayId, exerciseId);
+  return last ? bestSet(last.sets) : undefined;
+}
+
+/** Every past session's best set for this slot, oldest first — the data behind a lift-history graph. */
+export function getSlotExerciseHistory(sessionLogs: WorkoutSessionLog[], dayId: string, exerciseId: string): HistoryPoint[] {
+  return getSlotHistory(sessionLogs, dayId, exerciseId)
+    .map((entry) => ({ date: entry.date, topSet: bestSet(entry.sets) }))
+    .filter((p): p is HistoryPoint => p.topSet != null);
 }
 
 export function formatSet(set: SetLog | undefined, unit: WeightUnit): string {

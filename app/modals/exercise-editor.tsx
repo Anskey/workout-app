@@ -12,7 +12,8 @@ import { generateId, useStore } from '@/store/useStore';
 import { ALL_MUSCLE_GROUPS } from '@/data/muscleGroups';
 import { LiftHistoryChart } from '@/components/LiftHistoryChart';
 import { getFormCues } from '@/data/formCues';
-import { formatSet, getExerciseHistory, getLastTopSet } from '@/logic/sessionHistory';
+import { formatSet, getLastSlotTopSet, getSlotExerciseHistory } from '@/logic/sessionHistory';
+import { formatShortDate } from '@/logic/dates';
 import type { MuscleGroup, WeekPrescription } from '@/types';
 
 export default function ExerciseEditor() {
@@ -44,8 +45,11 @@ export default function ExerciseEditor() {
   const toggleMuscle = (m: MuscleGroup) =>
     setMuscles((prev) => (prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]));
 
-  const history = useMemo(() => (existing ? getExerciseHistory(sessionLogs, existing.name) : []), [existing, sessionLogs]);
-  const topSet = existing ? getLastTopSet(sessionLogs, existing.name) : undefined;
+  const history = useMemo(
+    () => (existing && dayId ? getSlotExerciseHistory(sessionLogs, dayId, existing.id) : []),
+    [existing, dayId, sessionLogs]
+  );
+  const topSet = existing && dayId ? getLastSlotTopSet(sessionLogs, dayId, existing.id) : undefined;
   const cues = existing ? getFormCues(existing.name) : undefined;
 
   const onSave = () => {
@@ -128,7 +132,19 @@ export default function ExerciseEditor() {
             <Card style={{ marginBottom: 16 }}>
               <SectionHeader>Lift History</SectionHeader>
               {topSet && <Text style={styles.lastText}>Last best: {formatSet(topSet, weightUnit)}</Text>}
-              <LiftHistoryChart points={history} weightUnit={weightUnit} />
+              <LiftHistoryChart
+                points={history}
+                weightUnit={weightUnit}
+                onPointPress={(p) =>
+                  Alert.alert(formatShortDate(p.date), formatSet(p.topSet, weightUnit), [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                      text: 'Edit This Entry',
+                      onPress: () => router.push({ pathname: '/modals/session-log', params: { programId, dayId, date: p.date } }),
+                    },
+                  ])
+                }
+              />
             </Card>
           )}
 

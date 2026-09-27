@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
@@ -12,8 +12,8 @@ import { getMuscleColor } from '@/data/muscleGroups';
 import { LiftHistoryChart } from '@/components/LiftHistoryChart';
 import { getFormCues } from '@/data/formCues';
 import { DateField } from '@/components/DateField';
-import { formatSet, getExerciseHistory, getLastExerciseLog, getLastTopSet, parseSetCount } from '@/logic/sessionHistory';
-import { todayISODate } from '@/logic/dates';
+import { formatSet, getLastSlotLog, getLastSlotTopSet, getSlotExerciseHistory, parseSetCount } from '@/logic/sessionHistory';
+import { formatShortDate, todayISODate } from '@/logic/dates';
 import { displayValueToKg, kgToDisplayValue } from '@/logic/units';
 import type { Exercise, SetLog, WeekPrescription, WorkoutSessionLog } from '@/types';
 
@@ -32,16 +32,16 @@ function rpeForSet(prescription: WeekPrescription | Exercise, index: number, tot
 /** Set rows for an exercise. When this slot was already logged on the selected date,
  * show exactly what was logged (every field, however many sets there really were) —
  * not a re-derived guess. Otherwise, blank rows sized to the current prescription, with
- * weight pre-filled from the last time it was done. */
-function initialSets(exercise: Exercise, week: number, sessionLogs: WorkoutSessionLog[], loggedName: string, fromToday?: SetLog[]): SetLog[] {
+ * weight pre-filled from the last time this slot was logged (whatever exercise it was). */
+function initialSets(exercise: Exercise, week: number, sessionLogs: WorkoutSessionLog[], dayId: string, fromToday?: SetLog[]): SetLog[] {
   if (fromToday) return fromToday.map((s) => ({ ...s }));
   const count = parseSetCount(currentPrescription(exercise, week).workingSets);
-  const lastSets = getLastExerciseLog(sessionLogs, loggedName);
+  const lastSets = getLastSlotLog(sessionLogs, dayId, exercise.id)?.sets;
   return Array.from({ length: count }, (_, i) => (lastSets?.[i] ? { weightKg: lastSets[i].weightKg } : {}));
 }
 
 export default function SessionLog() {
-  const { programId, dayId } = useLocalSearchParams<{ programId: string; dayId: string }>();
+  const { programId, dayId, date: dateParam } = useLocalSearchParams<{ programId: string; dayId: string; date?: string }>();
   const programs = useStore((s) => s.programs);
   const sessionLogs = useStore((s) => s.sessionLogs);
   const upsertSessionLog = useStore((s) => s.upsertSessionLog);
@@ -61,13 +61,13 @@ export default function SessionLog() {
     const logForDate = sessionLogs.find((l) => l.programId === programId && l.dayId === dayId && l.date === targetDate);
     day.exercises.forEach((exercise) => {
       const loggedEntry = logForDate?.exerciseLogs.find((e) => e.exerciseId === exercise.id);
-      init[exercise.id] = initialSets(exercise, week, sessionLogs, loggedEntry?.exerciseName ?? exercise.name, loggedEntry?.sets);
+      init[exercise.id] = initialSets(exercise, week, sessionLogs, dayId, loggedEntry?.sets);
     });
     return init;
   };
 
-  const [date, setDate] = useState(todayISODate());
-  const [setsByExercise, setSetsByExercise] = useState<Record<string, SetLog[]>>(() => buildSetsForDate(todayISODate()));
+  const [date, setDate] = useState(dateParam ?? todayISODate());
+  const [setsByExercise, setSetsByExercise] = useState<Record<string, SetLog[]>>(() => buildSetsForDate(dateParam ?? todayISODate()));
 
   const existingLog = sessionLogs.find((l) => l.programId === programId && l.dayId === dayId && l.date === date);
 
@@ -85,7 +85,7 @@ export default function SessionLog() {
     if (changed.length === 0) return;
     setSetsByExercise((prev) => {
       const next = { ...prev };
-      changed.forEach((e) => { next[e.id] = initialSets(e, week, sessionLogs, e.name); });
+      changed.forEach((e) => { next[e.id] = initialSets(e, week, sessionLogs, dayId); });
       return next;
     });
   }, [day, week, sessionLogs]);
@@ -106,6 +106,12 @@ export default function SessionLog() {
   const loggedNameFor = (exerciseId: string): string | undefined =>
     existingLog?.exerciseLogs.find((e) => e.exerciseId === exerciseId)?.exerciseName;
 
+  // What to call this slot: exactly what was logged on the selected date if anything, else
+  // whatever was last actually done here (a real substitution can be a long-running habit,
+  // not a one-off), else finally the program's own default name for the slot.
+  const effectiveName = (exercise: Exercise): string =>
+    loggedNameFor(exercise.id) ?? getLastSlotLog(sessionLogs, dayId, exercise.id)?.exerciseName ?? exercise.name;
+
   const onSave = () => {
     if (!program || !day || !programId || !dayId) return;
     upsertSessionLog({
@@ -116,7 +122,7 @@ export default function SessionLog() {
       dayName: day.name,
       exerciseLogs: day.exercises.map((exercise) => ({
         exerciseId: exercise.id,
-        exerciseName: loggedNameFor(exercise.id) ?? exercise.name,
+        exerciseName: effectiveName(exercise),
         sets: setsByExercise[exercise.id] ?? [],
       })),
     });
@@ -133,8 +139,9 @@ export default function SessionLog() {
 
         {day.exercises.map((exercise) => {
           const prescription = currentPrescription(exercise, week);
-          const displayName = loggedNameFor(exercise.id) ?? exercise.name;
-          const topSet = getLastTopSet(sessionLogs, displayName);
+          const displayName = effectiveName(exercise);
+          const lastSlotLog = getLastSlotLog(sessionLogs, dayId, exercise.id);
+          const topSet = getLastSlotTopSet(sessionLogs, dayId, exercise.id);
           const sets = setsByExercise[exercise.id] ?? [];
           const cues = getFormCues(displayName);
           return (
@@ -156,7 +163,12 @@ export default function SessionLog() {
               <Text style={styles.targetText}>
                 Target: {prescription.workingSets} × {prescription.reps} reps
               </Text>
-              {topSet && <Text style={styles.lastText}>Last best: {formatSet(topSet, weightUnit)}</Text>}
+              {topSet && (
+                <Text style={styles.lastText}>
+                  Last best: {formatSet(topSet, weightUnit)}
+                  {lastSlotLog && lastSlotLog.exerciseName !== displayName ? ` (as ${lastSlotLog.exerciseName})` : ''}
+                </Text>
+              )}
               {cues && (
                 <View style={styles.cuesBox}>
                   {cues.map((c, i) => (
@@ -166,7 +178,16 @@ export default function SessionLog() {
                   ))}
                 </View>
               )}
-              <LiftHistoryChart points={getExerciseHistory(sessionLogs, displayName)} weightUnit={weightUnit} />
+              <LiftHistoryChart
+                points={getSlotExerciseHistory(sessionLogs, dayId, exercise.id)}
+                weightUnit={weightUnit}
+                onPointPress={(p) =>
+                  Alert.alert(formatShortDate(p.date), formatSet(p.topSet, weightUnit), [
+                    { text: 'Cancel', style: 'cancel' },
+                    { text: 'Go to This Date', onPress: () => onDateChange(p.date) },
+                  ])
+                }
+              />
 
               <View style={styles.setHeaderRow}>
                 <Text style={[styles.setHeaderLabel, { flex: 1 }]}>Set</Text>

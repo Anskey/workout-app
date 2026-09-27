@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Line, Polyline } from 'react-native-svg';
 import { colors } from '@/theme/colors';
 import { formatShortDate } from '@/logic/dates';
@@ -10,6 +10,7 @@ import type { WeightUnit } from '@/types';
 interface Props {
   points: HistoryPoint[];
   weightUnit: WeightUnit;
+  onPointPress?: (point: HistoryPoint) => void;
 }
 
 const WIDTH = 280;
@@ -18,7 +19,7 @@ const PAD_X = 8;
 const PAD_Y = 12;
 
 /** A small trend line of an exercise's best set (weight) across every past logged session. */
-export function LiftHistoryChart({ points, weightUnit }: Props) {
+export function LiftHistoryChart({ points, weightUnit, onPointPress }: Props) {
   if (points.length < 2) {
     return (
       <View style={styles.emptyBox}>
@@ -50,26 +51,37 @@ export function LiftHistoryChart({ points, weightUnit }: Props) {
 
   return (
     <View>
-      <Svg width={WIDTH} height={HEIGHT} viewBox={`0 0 ${WIDTH} ${HEIGHT}`}>
-        <Line x1={PAD_X} y1={HEIGHT - PAD_Y} x2={WIDTH - PAD_X} y2={HEIGHT - PAD_Y} stroke={colors.divider} strokeWidth={1} />
-        <Polyline
-          points={linePoints}
-          fill="none"
-          stroke={trendUp ? colors.teal : colors.danger}
-          strokeWidth={2}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        {coords.map((c, i) => (
-          <Circle
-            key={i}
-            cx={c.x}
-            cy={c.y}
-            r={i === coords.length - 1 ? 4 : 2.5}
-            fill={i === coords.length - 1 ? colors.gold : colors.navy}
+      <View style={{ width: WIDTH, height: HEIGHT }}>
+        <Svg width={WIDTH} height={HEIGHT} viewBox={`0 0 ${WIDTH} ${HEIGHT}`}>
+          <Line x1={PAD_X} y1={HEIGHT - PAD_Y} x2={WIDTH - PAD_X} y2={HEIGHT - PAD_Y} stroke={colors.divider} strokeWidth={1} />
+          <Polyline
+            points={linePoints}
+            fill="none"
+            stroke={trendUp ? colors.teal : colors.danger}
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
-        ))}
-      </Svg>
+          {coords.map((c, i) => (
+            <Circle
+              key={i}
+              cx={c.x}
+              cy={c.y}
+              r={i === coords.length - 1 ? 4 : 2.5}
+              fill={i === coords.length - 1 ? colors.gold : colors.navy}
+            />
+          ))}
+        </Svg>
+        {onPointPress &&
+          coords.map((c, i) => (
+            <Pressable
+              key={i}
+              hitSlop={6}
+              onPress={() => onPointPress(points[i])}
+              style={[styles.pointHit, { left: c.x - 11, top: c.y - 11 }]}
+            />
+          ))}
+      </View>
       <View style={styles.labelRow}>
         <Text style={styles.labelText}>
           {formatShortDate(first.date)} · {first.w}
@@ -92,4 +104,5 @@ const styles = StyleSheet.create({
   labelRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
   labelText: { color: colors.textFaint, fontSize: 11 },
   labelStrong: { color: colors.gold, fontWeight: '700' },
+  pointHit: { position: 'absolute', width: 22, height: 22 },
 });
