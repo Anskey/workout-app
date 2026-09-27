@@ -3,6 +3,8 @@ export type Goal = 'bulk' | 'cut' | 'maintain';
 export type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
 export type WeightUnit = 'kg' | 'lb';
 export type LengthUnit = 'cm' | 'in';
+/** Which body-proportion archetype "ideal" comparisons and the body figure are measured against. */
+export type IdealPreset = 'editorial' | 'couture' | 'athletic' | 'bodybuilding';
 
 export interface UserProfile {
   name: string;
@@ -13,6 +15,7 @@ export interface UserProfile {
   onboardingComplete: boolean;
   weightUnit: WeightUnit;
   lengthUnit: LengthUnit;
+  idealPreset: IdealPreset;
 }
 
 export type MuscleGroup =

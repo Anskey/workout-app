@@ -11,6 +11,7 @@ import { useStore } from '@/store/useStore';
 import { compareToIdeal, getLatestMeasurement } from '@/logic/recommendations';
 import { formatLongDate } from '@/logic/dates';
 import { formatLength, formatWeight } from '@/logic/units';
+import { IDEAL_PRESETS } from '@/data/idealRatios';
 
 export default function Measurements() {
   const profile = useStore((s) => s.profile);
@@ -36,7 +37,7 @@ export default function Measurements() {
 
         {latest && comparisons.length > 0 && (
           <>
-            <SectionHeader>Latest vs. Reference</SectionHeader>
+            <SectionHeader>Latest vs. {IDEAL_PRESETS[profile.idealPreset].label}</SectionHeader>
             <Card style={{ marginBottom: 20 }}>
               <Text style={styles.dateLabel}>{formatLongDate(latest.date)}</Text>
               {comparisons.map((c) => (

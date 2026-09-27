@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
@@ -9,7 +9,8 @@ import { FormScrollView } from '@/components/FormScrollView';
 import { HeightInput } from '@/components/HeightInput';
 import { ModalHeader } from '@/components/ModalHeader';
 import { useStore } from '@/store/useStore';
-import type { ActivityLevel, Goal, LengthUnit, Sex, WeightUnit } from '@/types';
+import { IDEAL_PRESETS, IDEAL_PRESET_ORDER } from '@/data/idealRatios';
+import type { ActivityLevel, Goal, IdealPreset, LengthUnit, Sex, WeightUnit } from '@/types';
 
 const GOALS: { key: Goal; label: string }[] = [
   { key: 'bulk', label: 'Build Muscle' },
@@ -36,9 +37,10 @@ export default function EditProfile() {
   const [activityLevel, setActivityLevel] = useState<ActivityLevel>(profile.activityLevel);
   const [weightUnit, setWeightUnit] = useState<WeightUnit>(profile.weightUnit);
   const [lengthUnit, setLengthUnit] = useState<LengthUnit>(profile.lengthUnit);
+  const [idealPreset, setIdealPreset] = useState<IdealPreset>(profile.idealPreset);
 
   const onSave = () => {
-    setProfile({ name, heightCm: heightCm || profile.heightCm, sex, goal, activityLevel, weightUnit, lengthUnit });
+    setProfile({ name, heightCm: heightCm || profile.heightCm, sex, goal, activityLevel, weightUnit, lengthUnit, idealPreset });
     router.back();
   };
 
@@ -86,6 +88,14 @@ export default function EditProfile() {
               <Pill key={a.key} label={a.label} active={activityLevel === a.key} onPress={() => setActivityLevel(a.key)} />
             ))}
           </View>
+
+          <SectionHeader>Comparison Reference</SectionHeader>
+          <View style={[styles.pillRow, { flexWrap: 'wrap' }]}>
+            {IDEAL_PRESET_ORDER.map((p) => (
+              <Pill key={p} label={IDEAL_PRESETS[p].label} active={idealPreset === p} onPress={() => setIdealPreset(p)} />
+            ))}
+          </View>
+          <Text style={styles.presetDescription}>{IDEAL_PRESETS[idealPreset].description}</Text>
         </Card>
 
         <Button label="Save" onPress={onSave} style={{ marginTop: 20 }} />
@@ -109,4 +119,5 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   pillRow: { flexDirection: 'row', marginBottom: 10 },
+  presetDescription: { color: colors.textFaint, fontSize: 12, lineHeight: 17, marginTop: -2, marginBottom: 4 },
 });
