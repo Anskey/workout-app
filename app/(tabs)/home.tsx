@@ -16,6 +16,7 @@ import {
   getWorkoutSuggestions,
   measurementReminderInfo,
 } from '@/logic/recommendations';
+import { getNextWorkoutDay } from '@/logic/sessionHistory';
 import { todayISODate } from '@/logic/dates';
 import { getMuscleColor } from '@/data/muscleGroups';
 import { kgToDisplayValue } from '@/logic/units';
@@ -24,6 +25,7 @@ export default function Home() {
   const profile = useStore((s) => s.profile);
   const measurements = useStore((s) => s.measurements);
   const nutritionLogs = useStore((s) => s.nutritionLogs);
+  const sessionLogs = useStore((s) => s.sessionLogs);
   const activeProgram = useActiveProgram();
 
   const latest = getLatestMeasurement(measurements);
@@ -35,7 +37,8 @@ export default function Home() {
 
   const today = todayISODate();
   const todayLog = nutritionLogs.find((n) => n.date === today);
-  const firstDay = activeProgram?.days[0];
+  const nextDay = getNextWorkoutDay(activeProgram, sessionLogs);
+  const hasHistory = sessionLogs.some((l) => l.programId === activeProgram?.id);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -115,15 +118,21 @@ export default function Home() {
             </Text>
           }
         >
-          Your Program
+          {hasHistory ? 'Up Next' : 'Your Program'}
         </SectionHeader>
-        <Pressable onPress={() => router.push('/(tabs)/program')}>
+        <Pressable
+          onPress={() =>
+            nextDay && activeProgram
+              ? router.push({ pathname: '/modals/session-log', params: { programId: activeProgram.id, dayId: nextDay.id } })
+              : router.push('/(tabs)/program')
+          }
+        >
           <Card>
             <Text style={styles.programName}>{activeProgram?.name ?? 'No program yet'}</Text>
-            {firstDay && (
+            {nextDay && (
               <View style={styles.dayPreviewRow}>
                 <Text style={styles.dayPreviewText}>
-                  {firstDay.name} · {firstDay.exercises.length} exercises
+                  {nextDay.name} · {nextDay.exercises.length} exercises
                 </Text>
                 <ChevronRightIcon color={colors.textFaint} />
               </View>

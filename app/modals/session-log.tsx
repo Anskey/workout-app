@@ -29,11 +29,15 @@ function rpeForSet(prescription: WeekPrescription | Exercise, index: number, tot
   return prescription.earlyRPE ?? prescription.lastRPE;
 }
 
-/** Blank set rows for an exercise, with weights pre-filled from the last time it was done. */
-function initialSets(exercise: Exercise, week: number, sessionLogs: WorkoutSessionLog[], fromToday?: SetLog[]): SetLog[] {
+/** Set rows for an exercise. When this slot was already logged on the selected date,
+ * show exactly what was logged (every field, however many sets there really were) —
+ * not a re-derived guess. Otherwise, blank rows sized to the current prescription, with
+ * weight pre-filled from the last time it was done. */
+function initialSets(exercise: Exercise, week: number, sessionLogs: WorkoutSessionLog[], loggedName: string, fromToday?: SetLog[]): SetLog[] {
+  if (fromToday) return fromToday.map((s) => ({ ...s }));
   const count = parseSetCount(currentPrescription(exercise, week).workingSets);
-  const lastSets = getLastExerciseLog(sessionLogs, exercise.name);
-  return Array.from({ length: count }, (_, i) => fromToday?.[i] ?? (lastSets?.[i] ? { weightKg: lastSets[i].weightKg } : {}));
+  const lastSets = getLastExerciseLog(sessionLogs, loggedName);
+  return Array.from({ length: count }, (_, i) => (lastSets?.[i] ? { weightKg: lastSets[i].weightKg } : {}));
 }
 
 export default function SessionLog() {
@@ -56,8 +60,8 @@ export default function SessionLog() {
     if (!day) return init;
     const logForDate = sessionLogs.find((l) => l.programId === programId && l.dayId === dayId && l.date === targetDate);
     day.exercises.forEach((exercise) => {
-      const fromDate = logForDate?.exerciseLogs.find((e) => e.exerciseId === exercise.id && e.exerciseName === exercise.name)?.sets;
-      init[exercise.id] = initialSets(exercise, week, sessionLogs, fromDate);
+      const loggedEntry = logForDate?.exerciseLogs.find((e) => e.exerciseId === exercise.id);
+      init[exercise.id] = initialSets(exercise, week, sessionLogs, loggedEntry?.exerciseName ?? exercise.name, loggedEntry?.sets);
     });
     return init;
   };
@@ -81,7 +85,7 @@ export default function SessionLog() {
     if (changed.length === 0) return;
     setSetsByExercise((prev) => {
       const next = { ...prev };
-      changed.forEach((e) => { next[e.id] = initialSets(e, week, sessionLogs); });
+      changed.forEach((e) => { next[e.id] = initialSets(e, week, sessionLogs, e.name); });
       return next;
     });
   }, [day, week, sessionLogs]);
@@ -96,6 +100,12 @@ export default function SessionLog() {
     });
   };
 
+  // The exercise actually logged for this slot on the selected date, if it differs from
+  // today's default (e.g. a past substitution) — kept so re-saving a past log doesn't
+  // silently rename it back to whatever's currently the default for that slot.
+  const loggedNameFor = (exerciseId: string): string | undefined =>
+    existingLog?.exerciseLogs.find((e) => e.exerciseId === exerciseId)?.exerciseName;
+
   const onSave = () => {
     if (!program || !day || !programId || !dayId) return;
     upsertSessionLog({
@@ -106,7 +116,7 @@ export default function SessionLog() {
       dayName: day.name,
       exerciseLogs: day.exercises.map((exercise) => ({
         exerciseId: exercise.id,
-        exerciseName: exercise.name,
+        exerciseName: loggedNameFor(exercise.id) ?? exercise.name,
         sets: setsByExercise[exercise.id] ?? [],
       })),
     });
@@ -123,13 +133,14 @@ export default function SessionLog() {
 
         {day.exercises.map((exercise) => {
           const prescription = currentPrescription(exercise, week);
-          const topSet = getLastTopSet(sessionLogs, exercise.name);
+          const displayName = loggedNameFor(exercise.id) ?? exercise.name;
+          const topSet = getLastTopSet(sessionLogs, displayName);
           const sets = setsByExercise[exercise.id] ?? [];
-          const cues = getFormCues(exercise.name);
+          const cues = getFormCues(displayName);
           return (
             <Card key={exercise.id} style={{ marginBottom: 14 }}>
               <View style={styles.titleRow}>
-                <Text style={styles.exerciseName}>{exercise.name}</Text>
+                <Text style={styles.exerciseName}>{displayName}</Text>
                 <Pressable
                   hitSlop={10}
                   onPress={() => router.push({ pathname: '/modals/exercise-swap', params: { programId, dayId, exerciseId: exercise.id } })}
@@ -155,7 +166,7 @@ export default function SessionLog() {
                   ))}
                 </View>
               )}
-              <LiftHistoryChart points={getExerciseHistory(sessionLogs, exercise.name)} weightUnit={weightUnit} />
+              <LiftHistoryChart points={getExerciseHistory(sessionLogs, displayName)} weightUnit={weightUnit} />
 
               <View style={styles.setHeaderRow}>
                 <Text style={[styles.setHeaderLabel, { flex: 1 }]}>Set</Text>

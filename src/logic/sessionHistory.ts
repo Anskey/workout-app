@@ -1,5 +1,19 @@
-import type { SetLog, WeightUnit, WorkoutSessionLog } from '@/types';
+import type { SetLog, WeightUnit, WorkoutDay, WorkoutProgram, WorkoutSessionLog } from '@/types';
 import { kgToDisplayValue } from './units';
+
+/** The next day due in the program's rotation, based on whatever day was most recently
+ * logged — so the app can pick up where you left off instead of always starting back at
+ * day one. Falls back to the first day if nothing's been logged yet for this program, or
+ * if the last-logged day no longer exists in it (e.g. after a program edit). */
+export function getNextWorkoutDay(program: WorkoutProgram | undefined, sessionLogs: WorkoutSessionLog[]): WorkoutDay | undefined {
+  if (!program || program.days.length === 0) return undefined;
+  const logsForProgram = sessionLogs.filter((l) => l.programId === program.id);
+  if (logsForProgram.length === 0) return program.days[0];
+  const lastLog = [...logsForProgram].sort((a, b) => b.date.localeCompare(a.date))[0];
+  const idx = program.days.findIndex((d) => d.id === lastLog.dayId);
+  if (idx === -1) return program.days[0];
+  return program.days[(idx + 1) % program.days.length];
+}
 
 /** Extracts a usable set count (1-6) from a workingSets prescription string like "2-3" or "2 per leg". */
 export function parseSetCount(workingSets: string | undefined): number {
