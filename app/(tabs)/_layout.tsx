@@ -1,10 +1,18 @@
 import React from 'react';
 import { Platform, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { DumbbellIcon, HomeIcon, NutritionIcon, RulerIcon } from '@/components/Icons';
 
 export default function TabsLayout() {
+  // Android's edge-to-edge display means the system gesture/nav bar overlays the
+  // app instead of reserving space for it — without adding the bottom safe-area
+  // inset ourselves, the tab bar (and its labels) can end up rendered underneath
+  // it, effectively making the other tabs unreachable.
+  const insets = useSafeAreaInsets();
+  const baseHeight = Platform.OS === 'android' ? 56 : 60;
+
   return (
     <Tabs
       screenOptions={{
@@ -12,8 +20,8 @@ export default function TabsLayout() {
         tabBarActiveTintColor: colors.navyDeep,
         tabBarInactiveTintColor: colors.textFaint,
         tabBarShowLabel: true,
-        tabBarLabelStyle: { fontSize: 11, fontFamily: 'Inter_600SemiBold', marginBottom: Platform.OS === 'android' ? 6 : 0 },
-        tabBarStyle: styles.tabBar,
+        tabBarLabelStyle: { fontSize: 11, fontFamily: 'Inter_600SemiBold' },
+        tabBarStyle: [styles.tabBar, { height: baseHeight + insets.bottom, paddingBottom: insets.bottom + 6 }],
         sceneStyle: { backgroundColor: colors.bg },
       }}
     >
@@ -39,7 +47,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderTopWidth: 1,
     borderTopColor: colors.divider,
-    height: Platform.OS === 'android' ? 64 : 84,
     paddingTop: 8,
   },
 });
