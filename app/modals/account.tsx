@@ -15,9 +15,19 @@ export default function Account() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const runAuth = async (action: 'signIn' | 'signUp') => {
-    if (!email.trim() || password.length < 6) return;
+    setValidationError(null);
+    clearError();
+    if (!email.trim()) {
+      setValidationError('Enter an email address.');
+      return;
+    }
+    if (password.length < 6) {
+      setValidationError('Password must be at least 6 characters.');
+      return;
+    }
     setBusy(true);
     try {
       await (action === 'signIn' ? signIn(email, password) : signUp(email, password));
@@ -81,22 +91,11 @@ export default function Account() {
                 placeholderTextColor={colors.textFaint}
                 style={styles.input}
               />
-              {error && <Text style={styles.errorText}>{error}</Text>}
+              {(validationError || error) && <Text style={styles.errorText}>{validationError || error}</Text>}
             </Card>
 
-            <Button
-              label={busy ? 'Please wait…' : 'Sign In'}
-              onPress={() => runAuth('signIn')}
-              disabled={busy || !email.trim() || password.length < 6}
-              style={{ marginTop: 20 }}
-            />
-            <Button
-              label="Create Account"
-              variant="outline"
-              onPress={() => runAuth('signUp')}
-              disabled={busy || !email.trim() || password.length < 6}
-              style={{ marginTop: 12 }}
-            />
+            <Button label={busy ? 'Please wait…' : 'Sign In'} onPress={() => runAuth('signIn')} disabled={busy} style={{ marginTop: 20 }} />
+            <Button label="Create Account" variant="outline" onPress={() => runAuth('signUp')} disabled={busy} style={{ marginTop: 12 }} />
             {!!error && (
               <View style={{ marginTop: 4 }}>
                 <Text style={styles.dismissLink} onPress={clearError}>
