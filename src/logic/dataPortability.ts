@@ -1,4 +1,5 @@
 import { Directory, File, Paths } from 'expo-file-system';
+import * as LegacyFileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import { pickSyncableState, useStore, type SyncableState } from '@/store/useStore';
@@ -50,6 +51,18 @@ export interface ImportResult {
   error?: string;
 }
 
+/** Reads a picked document's text content, working around a long-standing Android issue
+ * where the new File class can't read a content:// URI handed back by the document
+ * picker (the read permission granted for ACTION_OPEN_DOCUMENT doesn't always propagate
+ * to it) — the older expo-file-system API handles these URIs more reliably. */
+async function readPickedFileText(uri: string): Promise<string> {
+  try {
+    return await new File(uri).text();
+  } catch {
+    return LegacyFileSystem.readAsStringAsync(uri, { encoding: 'utf8' });
+  }
+}
+
 /** Lets the user pick a previously-exported JSON file and replaces all local data with
  * it. Destructive by design (this is a full restore, not a merge) — callers should
  * confirm with the user before invoking this. */
@@ -58,8 +71,7 @@ export async function importData(): Promise<ImportResult> {
   if (picked.canceled) return { ok: false, cancelled: true };
 
   try {
-    const file = new File(picked.assets[0].uri);
-    const text = await file.text();
+    const text = await readPickedFileText(picked.assets[0].uri);
     const parsed: unknown = JSON.parse(text);
     if (!isSyncableState(parsed)) {
       return { ok: false, error: "That file doesn't look like a Sculpt backup." };
@@ -67,6 +79,6 @@ export async function importData(): Promise<ImportResult> {
     useStore.getState().hydrateFromCloud(parsed);
     return { ok: true };
   } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : 'That file could not be read as JSON.' };
+    return { ok: false, error: e instanceof Error ? e.message : 'That file could not be read. Try saving it to a local folder (like Downloads) rather than opening it directly from cloud storage.' };
   }
 }
