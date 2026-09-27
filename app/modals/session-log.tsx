@@ -10,6 +10,7 @@ import { ModalHeader } from '@/components/ModalHeader';
 import { useStore } from '@/store/useStore';
 import { getMuscleColor } from '@/data/muscleGroups';
 import { LiftHistoryChart } from '@/components/LiftHistoryChart';
+import { getFormCues } from '@/data/formCues';
 import { formatSet, getExerciseHistory, getLastExerciseLog, getLastTopSet, parseSetCount } from '@/logic/sessionHistory';
 import { formatLongDate, todayISODate } from '@/logic/dates';
 import { displayValueToKg, kgToDisplayValue } from '@/logic/units';
@@ -110,6 +111,7 @@ export default function SessionLog() {
           const prescription = currentPrescription(exercise, week);
           const topSet = getLastTopSet(sessionLogs, exercise.name);
           const sets = setsByExercise[exercise.id] ?? [];
+          const cues = getFormCues(exercise.name);
           return (
             <Card key={exercise.id} style={{ marginBottom: 14 }}>
               <View style={styles.titleRow}>
@@ -130,6 +132,15 @@ export default function SessionLog() {
                 Target: {prescription.workingSets} × {prescription.reps} reps
               </Text>
               {topSet && <Text style={styles.lastText}>Last best: {formatSet(topSet, weightUnit)}</Text>}
+              {cues && (
+                <View style={styles.cuesBox}>
+                  {cues.map((c, i) => (
+                    <Text key={i} style={styles.cueText}>
+                      · {c}
+                    </Text>
+                  ))}
+                </View>
+              )}
               <LiftHistoryChart points={getExerciseHistory(sessionLogs, exercise.name)} weightUnit={weightUnit} />
 
               <View style={styles.setHeaderRow}>
@@ -183,6 +194,8 @@ const styles = StyleSheet.create({
   badgeRow: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 },
   targetText: { color: colors.textSecondary, fontSize: 12.5, marginTop: 6 },
   lastText: { color: colors.gold, fontSize: 12.5, marginTop: 3, fontWeight: '600' },
+  cuesBox: { marginTop: 8, backgroundColor: colors.bgAlt, borderRadius: 2, padding: 10 },
+  cueText: { color: colors.textSecondary, fontSize: 12, lineHeight: 17 },
   setHeaderRow: { flexDirection: 'row', alignItems: 'center', marginTop: 14, marginBottom: 6, gap: 10 },
   setHeaderLabel: { color: colors.textFaint, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, width: 90, textAlign: 'center' },
   setRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 10 },

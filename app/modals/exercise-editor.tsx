@@ -11,6 +11,7 @@ import { MeasurementField } from '@/components/MeasurementField';
 import { generateId, useStore } from '@/store/useStore';
 import { ALL_MUSCLE_GROUPS } from '@/data/muscleGroups';
 import { LiftHistoryChart } from '@/components/LiftHistoryChart';
+import { getFormCues } from '@/data/formCues';
 import { formatSet, getExerciseHistory, getLastTopSet } from '@/logic/sessionHistory';
 import type { MuscleGroup, WeekPrescription } from '@/types';
 
@@ -45,6 +46,7 @@ export default function ExerciseEditor() {
 
   const history = useMemo(() => (existing ? getExerciseHistory(sessionLogs, existing.name) : []), [existing, sessionLogs]);
   const topSet = existing ? getLastTopSet(sessionLogs, existing.name) : undefined;
+  const cues = existing ? getFormCues(existing.name) : undefined;
 
   const onSave = () => {
     if (!name.trim() || !programId || !dayId) return;
@@ -107,6 +109,19 @@ export default function ExerciseEditor() {
                 <Pill key={m} label={m} active={muscles.includes(m)} onPress={() => toggleMuscle(m)} />
               ))}
             </View>
+
+            {cues && (
+              <>
+                <SectionHeader>Form Cues</SectionHeader>
+                <View style={styles.cuesBox}>
+                  {cues.map((c, i) => (
+                    <Text key={i} style={styles.cueText}>
+                      · {c}
+                    </Text>
+                  ))}
+                </View>
+              </>
+            )}
           </Card>
 
           {existing && (topSet || history.length > 0) && (
@@ -157,4 +172,6 @@ const styles = StyleSheet.create({
   pillWrap: { flexDirection: 'row', flexWrap: 'wrap' },
   weekHint: { color: colors.textFaint, fontSize: 12, lineHeight: 17, marginBottom: 10 },
   lastText: { color: colors.gold, fontSize: 12.5, fontWeight: '600', marginBottom: 10, marginTop: -6 },
+  cuesBox: { backgroundColor: colors.bgAlt, borderRadius: 2, padding: 10, marginTop: 4 },
+  cueText: { color: colors.textSecondary, fontSize: 12.5, lineHeight: 18 },
 });
