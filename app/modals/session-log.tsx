@@ -18,6 +18,14 @@ function currentPrescription(exercise: Exercise, week: number): WeekPrescription
   return exercise.weeklyProgression?.find((w) => w.week === week) ?? exercise;
 }
 
+/** RPE target for one specific set row: every set but the last uses the earlier-sets RPE,
+ * the final set uses the (usually higher) last-set RPE. Falls back to whichever is present. */
+function rpeForSet(prescription: WeekPrescription | Exercise, index: number, totalSets: number): string | undefined {
+  const isLast = index === totalSets - 1;
+  if (isLast) return prescription.lastRPE ?? prescription.earlyRPE;
+  return prescription.earlyRPE ?? prescription.lastRPE;
+}
+
 /** Blank set rows for an exercise, with weights pre-filled from the last time it was done. */
 function initialSets(exercise: Exercise, week: number, sessionLogs: WorkoutSessionLog[], fromToday?: SetLog[]): SetLog[] {
   const count = parseSetCount(currentPrescription(exercise, week).workingSets);
@@ -119,7 +127,6 @@ export default function SessionLog() {
               </View>
               <Text style={styles.targetText}>
                 Target: {prescription.workingSets} × {prescription.reps} reps
-                {prescription.lastRPE ? ` @ RPE ${prescription.lastRPE.replace('~', '')}` : ''}
               </Text>
               {topSet && <Text style={styles.lastText}>Last best: {formatSet(topSet, weightUnit)}</Text>}
 
@@ -127,28 +134,33 @@ export default function SessionLog() {
                 <Text style={[styles.setHeaderLabel, { flex: 1 }]}>Set</Text>
                 <Text style={styles.setHeaderLabel}>Weight ({weightUnit})</Text>
                 <Text style={styles.setHeaderLabel}>Reps</Text>
+                <Text style={styles.setHeaderLabel}>RPE</Text>
               </View>
-              {sets.map((set, i) => (
-                <View key={i} style={styles.setRow}>
-                  <Text style={[styles.setLabel, { flex: 1 }]}>{i + 1}</Text>
-                  <TextInput
-                    value={set.weightKg != null ? String(kgToDisplayValue(set.weightKg, weightUnit)) : ''}
-                    onChangeText={(t) => updateSet(exercise.id, i, 'weightKg', t)}
-                    keyboardType="decimal-pad"
-                    placeholder="—"
-                    placeholderTextColor={colors.textFaint}
-                    style={styles.setInput}
-                  />
-                  <TextInput
-                    value={set.reps != null ? String(set.reps) : ''}
-                    onChangeText={(t) => updateSet(exercise.id, i, 'reps', t)}
-                    keyboardType="number-pad"
-                    placeholder="—"
-                    placeholderTextColor={colors.textFaint}
-                    style={styles.setInput}
-                  />
-                </View>
-              ))}
+              {sets.map((set, i) => {
+                const rpe = rpeForSet(prescription, i, sets.length);
+                return (
+                  <View key={i} style={styles.setRow}>
+                    <Text style={[styles.setLabel, { flex: 1 }]}>{i + 1}</Text>
+                    <TextInput
+                      value={set.weightKg != null ? String(kgToDisplayValue(set.weightKg, weightUnit)) : ''}
+                      onChangeText={(t) => updateSet(exercise.id, i, 'weightKg', t)}
+                      keyboardType="decimal-pad"
+                      placeholder="—"
+                      placeholderTextColor={colors.textFaint}
+                      style={styles.setInput}
+                    />
+                    <TextInput
+                      value={set.reps != null ? String(set.reps) : ''}
+                      onChangeText={(t) => updateSet(exercise.id, i, 'reps', t)}
+                      keyboardType="number-pad"
+                      placeholder="—"
+                      placeholderTextColor={colors.textFaint}
+                      style={styles.setInput}
+                    />
+                    <Text style={styles.rpeLabel}>{rpe ? rpe.replace('~', '') : '—'}</Text>
+                  </View>
+                );
+              })}
             </Card>
           );
         })}
@@ -173,6 +185,7 @@ const styles = StyleSheet.create({
   setHeaderLabel: { color: colors.textFaint, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, width: 90, textAlign: 'center' },
   setRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 10 },
   setLabel: { color: colors.textSecondary, fontSize: 14 },
+  rpeLabel: { color: colors.textSecondary, fontSize: 13, fontWeight: '600', width: 90, textAlign: 'center' },
   setInput: {
     width: 90,
     textAlign: 'center',

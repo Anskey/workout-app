@@ -216,7 +216,7 @@ export const useStore = create<AppState>()(
     {
       name: 'workout-app-storage',
       storage: createJSONStorage(() => AsyncStorage),
-      version: 5,
+      version: 6,
       migrate: (persistedState: unknown, version: number) => {
         let state = (persistedState ?? {}) as { programs?: WorkoutProgram[]; profile?: UserProfile; [key: string]: unknown };
         if (version < 3) {
@@ -236,6 +236,37 @@ export const useStore = create<AppState>()(
               weightUnit: state.profile?.weightUnit ?? 'kg',
               lengthUnit: state.profile?.lengthUnit ?? 'cm',
             },
+          };
+        }
+        if (version < 6) {
+          // Block 2's exercise "substitutions" (the program's own alternate-exercise options)
+          // were only partially filled in originally. Refresh that one field from the current
+          // seed data for every exercise slot that still exists in it, by id, so a program the
+          // user already has doesn't need a manual "Reset" to pick up the missing alternates —
+          // this leaves their own swaps, names, and logged data untouched.
+          state = {
+            ...state,
+            programs: Array.isArray(state.programs)
+              ? state.programs.map((p) => {
+                  const defaultProgram = getDefaultProgram(p.id);
+                  if (!defaultProgram) return p;
+                  return {
+                    ...p,
+                    days: p.days.map((d) => {
+                      const defaultDay = defaultProgram.days.find((dd) => dd.id === d.id);
+                      if (!defaultDay) return d;
+                      return {
+                        ...d,
+                        exercises: d.exercises.map((e) => {
+                          const defaultEx = defaultDay.exercises.find((de) => de.id === e.id);
+                          if (!defaultEx) return e;
+                          return { ...e, substitutions: defaultEx.substitutions };
+                        }),
+                      };
+                    }),
+                  };
+                })
+              : [],
           };
         }
         return state;

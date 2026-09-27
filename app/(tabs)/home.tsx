@@ -65,7 +65,18 @@ export default function Home() {
               unit={profile.weightUnit}
             />
           </View>
-          <Button label={todayLog ? 'Update Today' : 'Log Today'} variant="outline" onPress={() => router.push('/modals/nutrition-log')} style={{ marginTop: 14 }} />
+          <Button
+            label={todayLog ? 'Update Today' : 'Log Today'}
+            variant="outline"
+            onPress={() =>
+              router.push(
+                todayLog
+                  ? { pathname: '/modals/nutrition-log', params: { entryId: todayLog.id } }
+                  : '/modals/nutrition-log'
+              )
+            }
+            style={{ marginTop: 14 }}
+          />
         </Card>
 
         <SectionHeader>Weekly Suggestions</SectionHeader>

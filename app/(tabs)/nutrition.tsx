@@ -38,7 +38,17 @@ export default function Nutrition() {
               unit={profile.weightUnit}
             />
           </View>
-          <Button label={todayLog ? 'Update Today' : 'Log Today'} onPress={() => router.push('/modals/nutrition-log')} style={{ marginTop: 16 }} />
+          <Button
+            label={todayLog ? 'Update Today' : 'Log Today'}
+            onPress={() =>
+              router.push(
+                todayLog
+                  ? { pathname: '/modals/nutrition-log', params: { entryId: todayLog.id } }
+                  : '/modals/nutrition-log'
+              )
+            }
+            style={{ marginTop: 16 }}
+          />
         </Card>
 
         <SectionHeader>Suggestions</SectionHeader>
