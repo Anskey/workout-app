@@ -10,6 +10,8 @@ import { ModalHeader } from '@/components/ModalHeader';
 import { MeasurementField } from '@/components/MeasurementField';
 import { generateId, useStore } from '@/store/useStore';
 import { ALL_MUSCLE_GROUPS } from '@/data/muscleGroups';
+import { LiftHistoryChart } from '@/components/LiftHistoryChart';
+import { formatSet, getExerciseHistory, getLastTopSet } from '@/logic/sessionHistory';
 import type { MuscleGroup, WeekPrescription } from '@/types';
 
 export default function ExerciseEditor() {
@@ -17,6 +19,8 @@ export default function ExerciseEditor() {
   const programs = useStore((s) => s.programs);
   const upsertExercise = useStore((s) => s.upsertExercise);
   const deleteExercise = useStore((s) => s.deleteExercise);
+  const sessionLogs = useStore((s) => s.sessionLogs);
+  const weightUnit = useStore((s) => s.profile.weightUnit);
 
   const program = programs.find((p) => p.id === programId);
   const day = program?.days.find((d) => d.id === dayId);
@@ -38,6 +42,9 @@ export default function ExerciseEditor() {
 
   const toggleMuscle = (m: MuscleGroup) =>
     setMuscles((prev) => (prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]));
+
+  const history = useMemo(() => (existing ? getExerciseHistory(sessionLogs, existing.name) : []), [existing, sessionLogs]);
+  const topSet = existing ? getLastTopSet(sessionLogs, existing.name) : undefined;
 
   const onSave = () => {
     if (!name.trim() || !programId || !dayId) return;
@@ -102,6 +109,14 @@ export default function ExerciseEditor() {
             </View>
           </Card>
 
+          {existing && (topSet || history.length > 0) && (
+            <Card style={{ marginBottom: 16 }}>
+              <SectionHeader>Lift History</SectionHeader>
+              {topSet && <Text style={styles.lastText}>Last best: {formatSet(topSet, weightUnit)}</Text>}
+              <LiftHistoryChart points={history} weightUnit={weightUnit} />
+            </Card>
+          )}
+
           <Card>
             <SectionHeader>{hasWeeklyProgression ? `Prescription — Week ${currentWeek}` : 'Prescription'}</SectionHeader>
             {hasWeeklyProgression && (
@@ -141,4 +156,5 @@ const styles = StyleSheet.create({
   },
   pillWrap: { flexDirection: 'row', flexWrap: 'wrap' },
   weekHint: { color: colors.textFaint, fontSize: 12, lineHeight: 17, marginBottom: 10 },
+  lastText: { color: colors.gold, fontSize: 12.5, fontWeight: '600', marginBottom: 10, marginTop: -6 },
 });

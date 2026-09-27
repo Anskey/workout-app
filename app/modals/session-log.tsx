@@ -9,7 +9,8 @@ import { FormScrollView } from '@/components/FormScrollView';
 import { ModalHeader } from '@/components/ModalHeader';
 import { useStore } from '@/store/useStore';
 import { getMuscleColor } from '@/data/muscleGroups';
-import { formatSet, getLastExerciseLog, getLastTopSet, parseSetCount } from '@/logic/sessionHistory';
+import { LiftHistoryChart } from '@/components/LiftHistoryChart';
+import { formatSet, getExerciseHistory, getLastExerciseLog, getLastTopSet, parseSetCount } from '@/logic/sessionHistory';
 import { formatLongDate, todayISODate } from '@/logic/dates';
 import { displayValueToKg, kgToDisplayValue } from '@/logic/units';
 import type { Exercise, SetLog, WeekPrescription, WorkoutSessionLog } from '@/types';
@@ -129,6 +130,7 @@ export default function SessionLog() {
                 Target: {prescription.workingSets} × {prescription.reps} reps
               </Text>
               {topSet && <Text style={styles.lastText}>Last best: {formatSet(topSet, weightUnit)}</Text>}
+              <LiftHistoryChart points={getExerciseHistory(sessionLogs, exercise.name)} weightUnit={weightUnit} />
 
               <View style={styles.setHeaderRow}>
                 <Text style={[styles.setHeaderLabel, { flex: 1 }]}>Set</Text>

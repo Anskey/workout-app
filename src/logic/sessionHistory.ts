@@ -19,10 +19,8 @@ export function getLastExerciseLog(sessionLogs: WorkoutSessionLog[], exerciseNam
   return undefined;
 }
 
-/** The heaviest set (ties broken by reps) from the last session that included this exercise. */
-export function getLastTopSet(sessionLogs: WorkoutSessionLog[], exerciseName: string): SetLog | undefined {
-  const sets = getLastExerciseLog(sessionLogs, exerciseName);
-  if (!sets) return undefined;
+/** The heaviest set in a list (ties broken by reps). */
+function bestSet(sets: SetLog[]): SetLog | undefined {
   return sets
     .filter((s) => s.weightKg != null || s.reps != null)
     .reduce<SetLog | undefined>((best, s) => {
@@ -32,6 +30,31 @@ export function getLastTopSet(sessionLogs: WorkoutSessionLog[], exerciseName: st
       if (w !== bw) return w > bw ? s : best;
       return (s.reps ?? 0) > (best.reps ?? 0) ? s : best;
     }, undefined);
+}
+
+/** The heaviest set (ties broken by reps) from the last session that included this exercise. */
+export function getLastTopSet(sessionLogs: WorkoutSessionLog[], exerciseName: string): SetLog | undefined {
+  const sets = getLastExerciseLog(sessionLogs, exerciseName);
+  if (!sets) return undefined;
+  return bestSet(sets);
+}
+
+export interface HistoryPoint {
+  date: string;
+  topSet: SetLog;
+}
+
+/** Every past session's best set for this exercise, oldest first — the data behind a lift-history graph. */
+export function getExerciseHistory(sessionLogs: WorkoutSessionLog[], exerciseName: string): HistoryPoint[] {
+  const sorted = [...sessionLogs].sort((a, b) => a.date.localeCompare(b.date));
+  const points: HistoryPoint[] = [];
+  sorted.forEach((log) => {
+    const match = log.exerciseLogs.find((e) => e.exerciseName === exerciseName);
+    if (!match) return;
+    const top = bestSet(match.sets);
+    if (top) points.push({ date: log.date, topSet: top });
+  });
+  return points;
 }
 
 export function formatSet(set: SetLog | undefined, unit: WeightUnit): string {
