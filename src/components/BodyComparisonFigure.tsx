@@ -33,6 +33,27 @@ const PROFILE: { y: number; key: Exclude<MeasurementKey, 'weightKg'>; fallbackCm
   { y: 300, key: 'calfCm', fallbackCm: 36 }, // ankle: taper the calf point in a bit further down
 ];
 
+/** Turns an ordered ring of points into a smooth closed curve (Catmull-Rom -> cubic
+ * Bezier), so the silhouette reads as a body outline instead of a straight-edged
+ * polygon. Wraps around the ends since the ring has no start/end seam. */
+function smoothClosedPath(points: { x: number; y: number }[]): string {
+  const n = points.length;
+  const at = (i: number) => points[((i % n) + n) % n];
+  let d = `M ${points[0].x} ${points[0].y}`;
+  for (let i = 0; i < n; i++) {
+    const p0 = at(i - 1);
+    const p1 = at(i);
+    const p2 = at(i + 1);
+    const p3 = at(i + 2);
+    const c1x = p1.x + (p2.x - p0.x) / 6;
+    const c1y = p1.y + (p2.y - p0.y) / 6;
+    const c2x = p2.x - (p3.x - p1.x) / 6;
+    const c2y = p2.y - (p3.y - p1.y) / 6;
+    d += ` C ${c1x} ${c1y} ${c2x} ${c2y} ${p2.x} ${p2.y}`;
+  }
+  return `${d} Z`;
+}
+
 // `fallback` is the reference map: missing actual measurements fall back to the
 // reference number (so an unmeasured region matches the reference outline exactly,
 // rather than a generic average that would create a fake-looking gap), and only
@@ -43,12 +64,9 @@ function buildPath(source: CmMap | undefined, fallback: CmMap): string {
     const half = i === PROFILE.length - 1 ? toHalfWidth(cm) * 0.55 : toHalfWidth(cm);
     return { y: p.y, half };
   });
-  const right = pts.map((p) => `L ${CENTER_X + p.half} ${p.y}`).join(' ');
-  const left = [...pts]
-    .reverse()
-    .map((p) => `L ${CENTER_X - p.half} ${p.y}`)
-    .join(' ');
-  return `M ${CENTER_X + pts[0].half} ${pts[0].y} ${right} ${left} Z`;
+  const right = pts.map((p) => ({ x: CENTER_X + p.half, y: p.y }));
+  const left = [...pts].reverse().map((p) => ({ x: CENTER_X - p.half, y: p.y }));
+  return smoothClosedPath([...right, ...left]);
 }
 
 /** A tiny paired-circle comparator for a limb measurement that doesn't sit on the
