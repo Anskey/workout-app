@@ -12,6 +12,7 @@ import {
   compareToIdeal,
   getLatestMeasurement,
   getNutritionSuggestion,
+  getSuggestedGoal,
   getWorkoutSuggestions,
   measurementReminderInfo,
 } from '@/logic/recommendations';
@@ -29,7 +30,8 @@ export default function Home() {
   const reminder = measurementReminderInfo(measurements);
   const comparisons = compareToIdeal(latest, profile);
   const workoutSuggestions = getWorkoutSuggestions(comparisons, activeProgram).slice(0, 3);
-  const nutritionSuggestion = getNutritionSuggestion(nutritionLogs, latest, profile.goal);
+  const effectiveGoal = profile.goalMode === 'auto' ? getSuggestedGoal(comparisons) : profile.goal;
+  const nutritionSuggestion = getNutritionSuggestion(nutritionLogs, latest, effectiveGoal);
 
   const today = todayISODate();
   const todayLog = nutritionLogs.find((n) => n.date === today);

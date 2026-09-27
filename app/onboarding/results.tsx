@@ -26,6 +26,7 @@ export default function Results() {
     weightUnit: draft.weightUnit,
     lengthUnit: draft.lengthUnit,
     idealPreset: 'editorial',
+    goalMode: 'manual',
   };
 
   const comparisons = compareToIdeal({ id: 'draft', date: todayISODate(), ...draft.measurements }, profile);

@@ -51,6 +51,26 @@ export function compareToIdeal(latest: MeasurementEntry | undefined, profile: Us
   return out;
 }
 
+/**
+ * Derives a nutrition goal from how the latest measurements compare to the selected
+ * reference: a waist that runs hot takes priority (cut), otherwise most measurements
+ * sitting below reference calls for size (bulk), and a build that's already close to
+ * reference across the board calls for holding steady (maintain).
+ */
+export function getSuggestedGoal(comparisons: MeasurementComparison[]): Goal {
+  if (comparisons.length === 0) return 'maintain';
+  const waist = comparisons.find((c) => c.key === 'waistCm');
+  if (waist?.status === 'lagging') return 'cut';
+
+  const others = comparisons.filter((c) => c.key !== 'waistCm');
+  if (others.length === 0) return 'maintain';
+  const laggingCount = others.filter((c) => c.status === 'lagging').length;
+  const exceedsCount = others.filter((c) => c.status === 'exceeds').length;
+  if (laggingCount > others.length / 2) return 'bulk';
+  if (exceedsCount > others.length / 2) return 'cut';
+  return 'maintain';
+}
+
 export interface WorkoutSuggestion {
   muscle: MuscleGroup;
   headline: string;

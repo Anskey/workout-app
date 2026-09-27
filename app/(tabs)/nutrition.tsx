@@ -8,7 +8,7 @@ import { Card } from '@/theme/Card';
 import { StatTile } from '@/components/StatTile';
 import { SparkleIcon, ChevronRightIcon } from '@/components/Icons';
 import { useStore } from '@/store/useStore';
-import { getLatestMeasurement, getNutritionSuggestion } from '@/logic/recommendations';
+import { compareToIdeal, getLatestMeasurement, getNutritionSuggestion, getSuggestedGoal } from '@/logic/recommendations';
 import { formatLongDate, todayISODate } from '@/logic/dates';
 import { formatWeight, kgToDisplayValue } from '@/logic/units';
 
@@ -18,7 +18,9 @@ export default function Nutrition() {
   const nutritionLogs = useStore((s) => s.nutritionLogs);
 
   const latestMeasurement = getLatestMeasurement(measurements);
-  const suggestion = getNutritionSuggestion(nutritionLogs, latestMeasurement, profile.goal);
+  const comparisons = compareToIdeal(latestMeasurement, profile);
+  const effectiveGoal = profile.goalMode === 'auto' ? getSuggestedGoal(comparisons) : profile.goal;
+  const suggestion = getNutritionSuggestion(nutritionLogs, latestMeasurement, effectiveGoal);
   const sorted = [...nutritionLogs].sort((a, b) => b.date.localeCompare(a.date));
   const today = todayISODate();
   const todayLog = sorted.find((n) => n.date === today);

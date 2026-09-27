@@ -11,6 +11,9 @@ export interface UserProfile {
   heightCm: number;
   sex: Sex;
   goal: Goal;
+  /** 'auto' derives the effective nutrition goal from how the latest measurements compare
+   * to the selected reference preset, instead of using `goal` directly. */
+  goalMode: 'manual' | 'auto';
   activityLevel: ActivityLevel;
   onboardingComplete: boolean;
   weightUnit: WeightUnit;

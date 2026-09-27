@@ -27,6 +27,7 @@ const DEFAULT_PROFILE: UserProfile = {
   weightUnit: 'kg',
   lengthUnit: 'cm',
   idealPreset: 'editorial',
+  goalMode: 'manual',
 };
 
 interface AppState {
@@ -217,7 +218,7 @@ export const useStore = create<AppState>()(
     {
       name: 'workout-app-storage',
       storage: createJSONStorage(() => AsyncStorage),
-      version: 7,
+      version: 8,
       migrate: (persistedState: unknown, version: number) => {
         let state = (persistedState ?? {}) as { programs?: WorkoutProgram[]; profile?: UserProfile; [key: string]: unknown };
         if (version < 3) {
@@ -274,6 +275,12 @@ export const useStore = create<AppState>()(
           state = {
             ...state,
             profile: { ...DEFAULT_PROFILE, ...state.profile, idealPreset: state.profile?.idealPreset ?? 'editorial' },
+          };
+        }
+        if (version < 8) {
+          state = {
+            ...state,
+            profile: { ...DEFAULT_PROFILE, ...state.profile, goalMode: state.profile?.goalMode ?? 'manual' },
           };
         }
         return state;

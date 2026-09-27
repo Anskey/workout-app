@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,6 +10,7 @@ import { HeightInput } from '@/components/HeightInput';
 import { ModalHeader } from '@/components/ModalHeader';
 import { useStore } from '@/store/useStore';
 import { IDEAL_PRESETS, IDEAL_PRESET_ORDER } from '@/data/idealRatios';
+import { compareToIdeal, getLatestMeasurement, getSuggestedGoal } from '@/logic/recommendations';
 import type { ActivityLevel, Goal, IdealPreset, LengthUnit, Sex, WeightUnit } from '@/types';
 
 const GOALS: { key: Goal; label: string }[] = [
@@ -17,6 +18,7 @@ const GOALS: { key: Goal; label: string }[] = [
   { key: 'cut', label: 'Lose Fat' },
   { key: 'maintain', label: 'Maintain' },
 ];
+const GOAL_LABELS: Record<Goal, string> = { bulk: 'Build Muscle', cut: 'Lose Fat', maintain: 'Maintain' };
 
 const ACTIVITY: { key: ActivityLevel; label: string }[] = [
   { key: 'sedentary', label: 'Sedentary' },
@@ -29,18 +31,38 @@ const ACTIVITY: { key: ActivityLevel; label: string }[] = [
 export default function EditProfile() {
   const profile = useStore((s) => s.profile);
   const setProfile = useStore((s) => s.setProfile);
+  const measurements = useStore((s) => s.measurements);
 
   const [name, setName] = useState(profile.name);
   const [heightCm, setHeightCm] = useState(profile.heightCm);
   const [sex, setSex] = useState<Sex>(profile.sex);
   const [goal, setGoal] = useState<Goal>(profile.goal);
+  const [goalMode, setGoalMode] = useState<'manual' | 'auto'>(profile.goalMode);
   const [activityLevel, setActivityLevel] = useState<ActivityLevel>(profile.activityLevel);
   const [weightUnit, setWeightUnit] = useState<WeightUnit>(profile.weightUnit);
   const [lengthUnit, setLengthUnit] = useState<LengthUnit>(profile.lengthUnit);
   const [idealPreset, setIdealPreset] = useState<IdealPreset>(profile.idealPreset);
 
+  // Live preview of what "Auto" would resolve to, using the in-progress edits above
+  // (sex/height/reference), so switching presets updates the suggestion immediately.
+  const suggestedGoal = useMemo(() => {
+    const latest = getLatestMeasurement(measurements);
+    const comparisons = compareToIdeal(latest, { ...profile, sex, heightCm: heightCm || profile.heightCm, idealPreset });
+    return getSuggestedGoal(comparisons);
+  }, [measurements, profile, sex, heightCm, idealPreset]);
+
   const onSave = () => {
-    setProfile({ name, heightCm: heightCm || profile.heightCm, sex, goal, activityLevel, weightUnit, lengthUnit, idealPreset });
+    setProfile({
+      name,
+      heightCm: heightCm || profile.heightCm,
+      sex,
+      goal: goalMode === 'auto' ? suggestedGoal : goal,
+      goalMode,
+      activityLevel,
+      weightUnit,
+      lengthUnit,
+      idealPreset,
+    });
     router.back();
   };
 
@@ -75,20 +97,6 @@ export default function EditProfile() {
             ))}
           </View>
 
-          <SectionHeader>Goal</SectionHeader>
-          <View style={styles.pillRow}>
-            {GOALS.map((g) => (
-              <Pill key={g.key} label={g.label} active={goal === g.key} onPress={() => setGoal(g.key)} />
-            ))}
-          </View>
-
-          <SectionHeader>Activity Level</SectionHeader>
-          <View style={[styles.pillRow, { flexWrap: 'wrap' }]}>
-            {ACTIVITY.map((a) => (
-              <Pill key={a.key} label={a.label} active={activityLevel === a.key} onPress={() => setActivityLevel(a.key)} />
-            ))}
-          </View>
-
           <SectionHeader>Comparison Reference</SectionHeader>
           <View style={[styles.pillRow, { flexWrap: 'wrap' }]}>
             {IDEAL_PRESET_ORDER.map((p) => (
@@ -96,6 +104,31 @@ export default function EditProfile() {
             ))}
           </View>
           <Text style={styles.presetDescription}>{IDEAL_PRESETS[idealPreset].description}</Text>
+
+          <SectionHeader>Goal</SectionHeader>
+          <View style={styles.pillRow}>
+            <Pill label="Manual" active={goalMode === 'manual'} onPress={() => setGoalMode('manual')} />
+            <Pill label="Auto (based on reference)" active={goalMode === 'auto'} onPress={() => setGoalMode('auto')} />
+          </View>
+          {goalMode === 'manual' ? (
+            <View style={styles.pillRow}>
+              {GOALS.map((g) => (
+                <Pill key={g.key} label={g.label} active={goal === g.key} onPress={() => setGoal(g.key)} />
+              ))}
+            </View>
+          ) : (
+            <Text style={styles.presetDescription}>
+              Based on your latest measurements vs. {IDEAL_PRESETS[idealPreset].label}, suggested goal: {GOAL_LABELS[suggestedGoal]}.
+              This updates automatically as your measurements and reference change.
+            </Text>
+          )}
+
+          <SectionHeader>Activity Level</SectionHeader>
+          <View style={[styles.pillRow, { flexWrap: 'wrap' }]}>
+            {ACTIVITY.map((a) => (
+              <Pill key={a.key} label={a.label} active={activityLevel === a.key} onPress={() => setActivityLevel(a.key)} />
+            ))}
+          </View>
         </Card>
 
         <Button label="Save" onPress={onSave} style={{ marginTop: 20 }} />
