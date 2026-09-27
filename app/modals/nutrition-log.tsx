@@ -9,30 +9,32 @@ import { ModalHeader } from '@/components/ModalHeader';
 import { MeasurementField } from '@/components/MeasurementField';
 import { useStore } from '@/store/useStore';
 import { formatLongDate, todayISODate } from '@/logic/dates';
+import { displayValueToKg, kgToDisplayValue } from '@/logic/units';
 
 export default function NutritionLog() {
   const { entryId } = useLocalSearchParams<{ entryId?: string }>();
   const nutritionLogs = useStore((s) => s.nutritionLogs);
   const upsertNutritionLog = useStore((s) => s.upsertNutritionLog);
   const deleteNutritionLog = useStore((s) => s.deleteNutritionLog);
+  const weightUnit = useStore((s) => s.profile.weightUnit);
 
   const existing = useMemo(() => nutritionLogs.find((n) => n.id === entryId), [nutritionLogs, entryId]);
   const date = existing?.date ?? todayISODate();
 
   const [calories, setCalories] = useState(existing?.calories ? String(existing.calories) : '');
   const [proteinG, setProteinG] = useState(existing?.proteinG ? String(existing.proteinG) : '');
-  const [weightKg, setWeightKg] = useState(existing?.weightKg ? String(existing.weightKg) : '');
+  const [weight, setWeight] = useState(existing?.weightKg ? String(kgToDisplayValue(existing.weightKg, weightUnit)) : '');
 
   const onSave = () => {
     const cal = parseFloat(calories);
     const pro = parseFloat(proteinG);
-    const wt = parseFloat(weightKg);
+    const wt = parseFloat(weight);
     upsertNutritionLog({
       id: existing?.id,
       date,
       calories: Number.isFinite(cal) ? cal : undefined,
       proteinG: Number.isFinite(pro) ? pro : undefined,
-      weightKg: Number.isFinite(wt) ? wt : undefined,
+      weightKg: Number.isFinite(wt) ? displayValueToKg(wt, weightUnit) : undefined,
     });
     router.back();
   };
@@ -56,7 +58,7 @@ export default function NutritionLog() {
             <SectionHeader>Today</SectionHeader>
             <MeasurementField label="Calories" unit="kcal" value={calories} onChangeText={setCalories} />
             <MeasurementField label="Protein" unit="g" value={proteinG} onChangeText={setProteinG} />
-            <MeasurementField label="Weight" unit="kg" value={weightKg} onChangeText={setWeightKg} />
+            <MeasurementField label="Weight" unit={weightUnit} value={weight} onChangeText={setWeight} />
           </Card>
 
           <Button label="Save" onPress={onSave} style={{ marginTop: 20 }} />

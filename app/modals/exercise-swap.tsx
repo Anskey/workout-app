@@ -55,11 +55,12 @@ export default function ExerciseSwap() {
 
   const onSelect = (name: string, muscleGroups: MuscleGroup[]) => {
     if (!existing || !programId || !dayId) return;
+    // Substitutions describe this slot in the program, not the specific exercise
+    // currently equipped, so they carry over unchanged across swaps.
     upsertExercise(programId, dayId, {
       ...existing,
       name,
       muscleGroups,
-      substitutions: [],
     });
     router.back();
   };

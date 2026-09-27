@@ -7,7 +7,7 @@ import { Button, Pill, SectionHeader } from '@/theme/ui';
 import { Card } from '@/theme/Card';
 import { ModalHeader } from '@/components/ModalHeader';
 import { useStore } from '@/store/useStore';
-import type { ActivityLevel, Goal, Sex } from '@/types';
+import type { ActivityLevel, Goal, Sex, WeightUnit } from '@/types';
 
 const GOALS: { key: Goal; label: string }[] = [
   { key: 'bulk', label: 'Build Muscle' },
@@ -32,9 +32,10 @@ export default function EditProfile() {
   const [sex, setSex] = useState<Sex>(profile.sex);
   const [goal, setGoal] = useState<Goal>(profile.goal);
   const [activityLevel, setActivityLevel] = useState<ActivityLevel>(profile.activityLevel);
+  const [weightUnit, setWeightUnit] = useState<WeightUnit>(profile.weightUnit);
 
   const onSave = () => {
-    setProfile({ name, heightCm: Number(heightCm) || profile.heightCm, sex, goal, activityLevel });
+    setProfile({ name, heightCm: Number(heightCm) || profile.heightCm, sex, goal, activityLevel, weightUnit });
     router.back();
   };
 
@@ -76,6 +77,13 @@ export default function EditProfile() {
           <View style={[styles.pillRow, { flexWrap: 'wrap' }]}>
             {ACTIVITY.map((a) => (
               <Pill key={a.key} label={a.label} active={activityLevel === a.key} onPress={() => setActivityLevel(a.key)} />
+            ))}
+          </View>
+
+          <SectionHeader>Weight Unit</SectionHeader>
+          <View style={styles.pillRow}>
+            {(['kg', 'lb'] as WeightUnit[]).map((u) => (
+              <Pill key={u} label={u === 'kg' ? 'Kilograms' : 'Pounds'} active={weightUnit === u} onPress={() => setWeightUnit(u)} />
             ))}
           </View>
         </Card>

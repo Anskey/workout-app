@@ -24,6 +24,7 @@ const DEFAULT_PROFILE: UserProfile = {
   goal: 'bulk',
   activityLevel: 'moderate',
   onboardingComplete: false,
+  weightUnit: 'kg',
 };
 
 interface AppState {
@@ -214,16 +215,19 @@ export const useStore = create<AppState>()(
     {
       name: 'workout-app-storage',
       storage: createJSONStorage(() => AsyncStorage),
-      version: 3,
+      version: 4,
       migrate: (persistedState: unknown, version: number) => {
-        const state = (persistedState ?? {}) as { programs?: WorkoutProgram[]; [key: string]: unknown };
+        let state = (persistedState ?? {}) as { programs?: WorkoutProgram[]; profile?: UserProfile; [key: string]: unknown };
         if (version < 3) {
           const seed = createSeedProgram();
           const programs = Array.isArray(state.programs) ? [...state.programs] : [];
           const idx = programs.findIndex((p) => p.id === 'seed-program-ppl');
           if (idx >= 0) programs[idx] = seed;
           else programs.unshift(seed);
-          return { ...state, programs, sessionLogs: Array.isArray((state as any).sessionLogs) ? (state as any).sessionLogs : [] };
+          state = { ...state, programs, sessionLogs: Array.isArray((state as any).sessionLogs) ? (state as any).sessionLogs : [] };
+        }
+        if (version < 4) {
+          state = { ...state, profile: { ...DEFAULT_PROFILE, ...state.profile, weightUnit: state.profile?.weightUnit ?? 'kg' } };
         }
         return state;
       },

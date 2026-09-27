@@ -17,6 +17,7 @@ import {
 } from '@/logic/recommendations';
 import { todayISODate } from '@/logic/dates';
 import { getMuscleColor } from '@/data/muscleGroups';
+import { kgToDisplayValue } from '@/logic/units';
 
 export default function Home() {
   const profile = useStore((s) => s.profile);
@@ -58,7 +59,11 @@ export default function Home() {
           <View style={styles.statsRow}>
             <StatTile label="Calories" value={todayLog?.calories ? String(todayLog.calories) : '—'} unit="kcal" />
             <StatTile label="Protein" value={todayLog?.proteinG ? String(todayLog.proteinG) : '—'} unit="g" accent={colors.gold} />
-            <StatTile label="Weight" value={todayLog?.weightKg ? String(todayLog.weightKg) : '—'} unit="kg" />
+            <StatTile
+              label="Weight"
+              value={todayLog?.weightKg ? String(kgToDisplayValue(todayLog.weightKg, profile.weightUnit)) : '—'}
+              unit={profile.weightUnit}
+            />
           </View>
           <Button label={todayLog ? 'Update Today' : 'Log Today'} variant="outline" onPress={() => router.push('/modals/nutrition-log')} style={{ marginTop: 14 }} />
         </Card>

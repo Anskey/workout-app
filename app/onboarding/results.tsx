@@ -23,6 +23,7 @@ export default function Results() {
     goal: draft.goal,
     activityLevel: draft.activityLevel,
     onboardingComplete: false,
+    weightUnit: draft.weightUnit,
   };
 
   const comparisons = compareToIdeal({ id: 'draft', date: todayISODate(), ...draft.measurements }, profile);

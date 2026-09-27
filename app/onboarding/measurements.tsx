@@ -6,10 +6,11 @@ import { Button, ScreenTitle, SectionHeader } from '@/theme/ui';
 import { Card } from '@/theme/Card';
 import { MeasurementField } from '@/components/MeasurementField';
 import { useOnboardingDraft } from '@/store/onboardingDraft';
+import { displayValueToKg } from '@/logic/units';
 import type { MeasurementKey } from '@/types';
 
 const FIELDS: { key: MeasurementKey; label: string; unit?: string }[] = [
-  { key: 'weightKg', label: 'Body Weight', unit: 'kg' },
+  { key: 'weightKg', label: 'Body Weight' },
   { key: 'neckCm', label: 'Neck' },
   { key: 'shouldersCm', label: 'Shoulders' },
   { key: 'chestCm', label: 'Chest / Bust' },
@@ -28,7 +29,11 @@ export default function Measurements() {
   const onChange = (key: MeasurementKey, text: string) => {
     setValues((v) => ({ ...v, [key]: text }));
     const n = parseFloat(text);
-    draft.setMeasurement(key, Number.isFinite(n) ? n : undefined);
+    if (!Number.isFinite(n)) {
+      draft.setMeasurement(key, undefined);
+      return;
+    }
+    draft.setMeasurement(key, key === 'weightKg' ? displayValueToKg(n, draft.weightUnit) : n);
   };
 
   return (
@@ -44,7 +49,7 @@ export default function Measurements() {
             <MeasurementField
               key={f.key}
               label={f.label}
-              unit={f.unit}
+              unit={f.key === 'weightKg' ? draft.weightUnit : f.unit}
               value={values[f.key] ?? ''}
               onChangeText={(t) => onChange(f.key, t)}
             />

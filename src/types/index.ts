@@ -1,6 +1,7 @@
 export type Sex = 'male' | 'female';
 export type Goal = 'bulk' | 'cut' | 'maintain';
 export type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
+export type WeightUnit = 'kg' | 'lb';
 
 export interface UserProfile {
   name: string;
@@ -9,6 +10,7 @@ export interface UserProfile {
   goal: Goal;
   activityLevel: ActivityLevel;
   onboardingComplete: boolean;
+  weightUnit: WeightUnit;
 }
 
 export type MuscleGroup =

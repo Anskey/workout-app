@@ -6,7 +6,7 @@ import { colors } from '@/theme/colors';
 import { Button, Pill, ScreenTitle, SectionHeader } from '@/theme/ui';
 import { Card } from '@/theme/Card';
 import { useOnboardingDraft } from '@/store/onboardingDraft';
-import type { ActivityLevel, Goal, Sex } from '@/types';
+import type { ActivityLevel, Goal, Sex, WeightUnit } from '@/types';
 
 const GOALS: { key: Goal; label: string }[] = [
   { key: 'bulk', label: 'Build Muscle' },
@@ -69,6 +69,13 @@ export default function Profile() {
           <View style={[styles.pillRow, { flexWrap: 'wrap' }]}>
             {ACTIVITY.map((a) => (
               <Pill key={a.key} label={a.label} active={draft.activityLevel === a.key} onPress={() => draft.setField('activityLevel', a.key)} />
+            ))}
+          </View>
+
+          <SectionHeader>Weight Unit</SectionHeader>
+          <View style={styles.pillRow}>
+            {(['kg', 'lb'] as WeightUnit[]).map((u) => (
+              <Pill key={u} label={u === 'kg' ? 'Kilograms' : 'Pounds'} active={draft.weightUnit === u} onPress={() => draft.setField('weightUnit', u)} />
             ))}
           </View>
         </Card>

@@ -138,6 +138,7 @@ function DayCard({
   sessionLogs: WorkoutSessionLog[];
 }) {
   const resetDayToDefault = useStore((s) => s.resetDayToDefault);
+  const weightUnit = useStore((s) => s.profile.weightUnit);
   const isDefaultProgram = programId === DEFAULT_PROGRAM_ID;
 
   const onResetDay = () => {
@@ -183,7 +184,7 @@ function DayCard({
               programId={programId}
               dayId={day.id}
               currentWeek={currentWeek}
-              lastSetsText={formatSets(getLastExerciseLog(sessionLogs, exercise.name))}
+              lastSetsText={formatSets(getLastExerciseLog(sessionLogs, exercise.name), weightUnit)}
             />
           ))}
           <Pressable

@@ -10,6 +10,7 @@ import { SparkleIcon, ChevronRightIcon } from '@/components/Icons';
 import { useStore } from '@/store/useStore';
 import { getLatestMeasurement, getNutritionSuggestion } from '@/logic/recommendations';
 import { formatLongDate, todayISODate } from '@/logic/dates';
+import { formatWeight, kgToDisplayValue } from '@/logic/units';
 
 export default function Nutrition() {
   const profile = useStore((s) => s.profile);
@@ -31,7 +32,11 @@ export default function Nutrition() {
           <View style={styles.statsRow}>
             <StatTile label="Calories" value={todayLog?.calories ? String(todayLog.calories) : '—'} unit="kcal" />
             <StatTile label="Protein" value={todayLog?.proteinG ? String(todayLog.proteinG) : '—'} unit="g" accent={colors.gold} />
-            <StatTile label="Weight" value={todayLog?.weightKg ? String(todayLog.weightKg) : '—'} unit="kg" />
+            <StatTile
+              label="Weight"
+              value={todayLog?.weightKg ? String(kgToDisplayValue(todayLog.weightKg, profile.weightUnit)) : '—'}
+              unit={profile.weightUnit}
+            />
           </View>
           <Button label={todayLog ? 'Update Today' : 'Log Today'} onPress={() => router.push('/modals/nutrition-log')} style={{ marginTop: 16 }} />
         </Card>
@@ -64,7 +69,7 @@ export default function Nutrition() {
                   <Text style={styles.rowDate}>{formatLongDate(n.date)}</Text>
                   <Text style={styles.rowMeta}>
                     {n.calories ? `${n.calories} kcal` : '—'} · {n.proteinG ? `${n.proteinG}g protein` : '—'}
-                    {n.weightKg ? ` · ${n.weightKg}kg` : ''}
+                    {n.weightKg ? ` · ${formatWeight(n.weightKg, profile.weightUnit)}` : ''}
                   </Text>
                 </View>
                 <ChevronRightIcon color={colors.textFaint} />

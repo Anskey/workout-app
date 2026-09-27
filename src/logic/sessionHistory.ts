@@ -1,4 +1,5 @@
-import type { SetLog, WorkoutSessionLog } from '@/types';
+import type { SetLog, WeightUnit, WorkoutSessionLog } from '@/types';
+import { kgToDisplayValue } from './units';
 
 /** Extracts a usable set count (1-6) from a workingSets prescription string like "2-3" or "2 per leg". */
 export function parseSetCount(workingSets: string | undefined): number {
@@ -18,10 +19,10 @@ export function getLastExerciseLog(sessionLogs: WorkoutSessionLog[], exerciseNam
   return undefined;
 }
 
-export function formatSets(sets: SetLog[] | undefined): string {
+export function formatSets(sets: SetLog[] | undefined, unit: WeightUnit): string {
   if (!sets || sets.length === 0) return '';
   return sets
     .filter((s) => s.weightKg != null || s.reps != null)
-    .map((s) => `${s.weightKg ?? '—'}kg×${s.reps ?? '—'}`)
+    .map((s) => `${s.weightKg != null ? kgToDisplayValue(s.weightKg, unit) : '—'}${unit}×${s.reps ?? '—'}`)
     .join(', ');
 }

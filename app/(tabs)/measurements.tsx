@@ -10,6 +10,7 @@ import { ChevronRightIcon } from '@/components/Icons';
 import { useStore } from '@/store/useStore';
 import { compareToIdeal, getLatestMeasurement } from '@/logic/recommendations';
 import { formatLongDate } from '@/logic/dates';
+import { formatWeight } from '@/logic/units';
 
 export default function Measurements() {
   const profile = useStore((s) => s.profile);
@@ -59,7 +60,7 @@ export default function Measurements() {
                 <View style={{ flex: 1 }}>
                   <Text style={styles.rowDate}>{formatLongDate(m.date)}</Text>
                   <Text style={styles.rowMeta}>
-                    {m.weightKg ? `${m.weightKg} kg` : '—'}
+                    {m.weightKg ? formatWeight(m.weightKg, profile.weightUnit) : '—'}
                     {m.waistCm ? ` · waist ${m.waistCm}cm` : ''}
                     {m.calfCm ? ` · calf ${m.calfCm}cm` : ''}
                   </Text>

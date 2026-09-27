@@ -10,6 +10,7 @@ import { useStore } from '@/store/useStore';
 import { getMuscleColor } from '@/data/muscleGroups';
 import { formatSets, getLastExerciseLog, parseSetCount } from '@/logic/sessionHistory';
 import { formatLongDate, todayISODate } from '@/logic/dates';
+import { displayValueToKg, kgToDisplayValue } from '@/logic/units';
 import type { Exercise, SetLog, WeekPrescription } from '@/types';
 
 function currentPrescription(exercise: Exercise, week: number): WeekPrescription | Exercise {
@@ -21,6 +22,7 @@ export default function SessionLog() {
   const programs = useStore((s) => s.programs);
   const sessionLogs = useStore((s) => s.sessionLogs);
   const upsertSessionLog = useStore((s) => s.upsertSessionLog);
+  const weightUnit = useStore((s) => s.profile.weightUnit);
 
   const program = programs.find((p) => p.id === programId);
   const day = program?.days.find((d) => d.id === dayId);
@@ -49,9 +51,10 @@ export default function SessionLog() {
 
   const updateSet = (exerciseId: string, index: number, field: 'weightKg' | 'reps', text: string) => {
     const n = parseFloat(text);
+    const value = Number.isFinite(n) ? (field === 'weightKg' ? displayValueToKg(n, weightUnit) : n) : undefined;
     setSetsByExercise((prev) => {
       const sets = [...(prev[exerciseId] ?? [])];
-      sets[index] = { ...sets[index], [field]: Number.isFinite(n) ? n : undefined };
+      sets[index] = { ...sets[index], [field]: value };
       return { ...prev, [exerciseId]: sets };
     });
   };
@@ -98,18 +101,18 @@ export default function SessionLog() {
                   Target: {prescription.workingSets} × {prescription.reps} reps
                   {prescription.lastRPE ? ` @ RPE ${prescription.lastRPE.replace('~', '')}` : ''}
                 </Text>
-                {lastSets && <Text style={styles.lastText}>Last time: {formatSets(lastSets)}</Text>}
+                {lastSets && <Text style={styles.lastText}>Last time: {formatSets(lastSets, weightUnit)}</Text>}
 
                 <View style={styles.setHeaderRow}>
                   <Text style={[styles.setHeaderLabel, { flex: 1 }]}>Set</Text>
-                  <Text style={styles.setHeaderLabel}>Weight (kg)</Text>
+                  <Text style={styles.setHeaderLabel}>Weight ({weightUnit})</Text>
                   <Text style={styles.setHeaderLabel}>Reps</Text>
                 </View>
                 {sets.map((set, i) => (
                   <View key={i} style={styles.setRow}>
                     <Text style={[styles.setLabel, { flex: 1 }]}>{i + 1}</Text>
                     <TextInput
-                      value={set.weightKg != null ? String(set.weightKg) : ''}
+                      value={set.weightKg != null ? String(kgToDisplayValue(set.weightKg, weightUnit)) : ''}
                       onChangeText={(t) => updateSet(exercise.id, i, 'weightKg', t)}
                       keyboardType="decimal-pad"
                       placeholder="—"

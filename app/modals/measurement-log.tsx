@@ -9,10 +9,11 @@ import { ModalHeader } from '@/components/ModalHeader';
 import { MeasurementField } from '@/components/MeasurementField';
 import { useStore } from '@/store/useStore';
 import { formatLongDate, todayISODate } from '@/logic/dates';
+import { displayValueToKg, kgToDisplayValue } from '@/logic/units';
 import type { MeasurementKey } from '@/types';
 
 const FIELDS: { key: MeasurementKey; label: string; unit?: string }[] = [
-  { key: 'weightKg', label: 'Body Weight', unit: 'kg' },
+  { key: 'weightKg', label: 'Body Weight' },
   { key: 'neckCm', label: 'Neck' },
   { key: 'shouldersCm', label: 'Shoulders' },
   { key: 'chestCm', label: 'Chest / Bust' },
@@ -31,6 +32,7 @@ export default function MeasurementLog() {
   const updateMeasurement = useStore((s) => s.updateMeasurement);
   const deleteMeasurement = useStore((s) => s.deleteMeasurement);
 
+  const weightUnit = useStore((s) => s.profile.weightUnit);
   const existing = useMemo(() => measurements.find((m) => m.id === entryId), [measurements, entryId]);
   const date = existing?.date ?? todayISODate();
 
@@ -38,7 +40,8 @@ export default function MeasurementLog() {
     const init: Record<string, string> = {};
     FIELDS.forEach((f) => {
       const v = existing?.[f.key];
-      if (v != null) init[f.key] = String(v);
+      if (v == null) return;
+      init[f.key] = String(f.key === 'weightKg' ? kgToDisplayValue(v, weightUnit) : v);
     });
     return init;
   });
@@ -49,7 +52,8 @@ export default function MeasurementLog() {
     const parsed: Partial<Record<MeasurementKey, number>> = {};
     FIELDS.forEach((f) => {
       const n = parseFloat(values[f.key] ?? '');
-      if (Number.isFinite(n)) parsed[f.key] = n;
+      if (!Number.isFinite(n)) return;
+      parsed[f.key] = f.key === 'weightKg' ? displayValueToKg(n, weightUnit) : n;
     });
     if (existing) {
       updateMeasurement({ ...existing, ...parsed });
@@ -77,7 +81,13 @@ export default function MeasurementLog() {
           <Card>
             <SectionHeader>Values</SectionHeader>
             {FIELDS.map((f) => (
-              <MeasurementField key={f.key} label={f.label} unit={f.unit} value={values[f.key] ?? ''} onChangeText={(t) => onChange(f.key, t)} />
+              <MeasurementField
+                key={f.key}
+                label={f.label}
+                unit={f.key === 'weightKg' ? weightUnit : f.unit}
+                value={values[f.key] ?? ''}
+                onChangeText={(t) => onChange(f.key, t)}
+              />
             ))}
           </Card>
 
