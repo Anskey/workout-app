@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Line, Polyline } from 'react-native-svg';
 import { colors } from '@/theme/colors';
@@ -20,6 +20,8 @@ const PAD_Y = 12;
 
 /** A small trend line of an exercise's best set (weight) across every past logged session. */
 export function LiftHistoryChart({ points, weightUnit, onPointPress }: Props) {
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+
   if (points.length < 2) {
     return (
       <View style={styles.emptyBox}>
@@ -48,6 +50,7 @@ export function LiftHistoryChart({ points, weightUnit, onPointPress }: Props) {
   const first = coords[0];
   const last = coords[coords.length - 1];
   const trendUp = last.w >= first.w;
+  const selected = selectedIdx != null ? coords[selectedIdx] : null;
 
   return (
     <View>
@@ -67,21 +70,34 @@ export function LiftHistoryChart({ points, weightUnit, onPointPress }: Props) {
               key={i}
               cx={c.x}
               cy={c.y}
-              r={i === coords.length - 1 ? 4 : 2.5}
-              fill={i === coords.length - 1 ? colors.gold : colors.navy}
+              r={selectedIdx === i ? 5 : i === coords.length - 1 ? 4 : 2.5}
+              fill={selectedIdx === i ? colors.teal : i === coords.length - 1 ? colors.gold : colors.navy}
             />
           ))}
         </Svg>
-        {onPointPress &&
-          coords.map((c, i) => (
-            <Pressable
-              key={i}
-              hitSlop={6}
-              onPress={() => onPointPress(points[i])}
-              style={[styles.pointHit, { left: c.x - 11, top: c.y - 11 }]}
-            />
-          ))}
+        {coords.map((c, i) => (
+          <Pressable
+            key={i}
+            hitSlop={6}
+            onPress={() => setSelectedIdx(i)}
+            style={[styles.pointHit, { left: c.x - 11, top: c.y - 11 }]}
+          />
+        ))}
       </View>
+      {selected && (
+        <View style={styles.selectedRow}>
+          <Text style={styles.selectedText}>
+            {formatShortDate(selected.date)} · {selected.w}
+            {weightUnit}
+            {selected.reps != null ? ` × ${selected.reps}${selected.partialReps ? `+${selected.partialReps}` : ''}` : ''}
+          </Text>
+          {onPointPress && (
+            <Text style={styles.editLink} onPress={() => onPointPress(points[selectedIdx!])}>
+              Edit →
+            </Text>
+          )}
+        </View>
+      )}
       <View style={styles.labelRow}>
         <Text style={styles.labelText}>
           {formatShortDate(first.date)} · {first.w}
@@ -105,4 +121,15 @@ const styles = StyleSheet.create({
   labelText: { color: colors.textFaint, fontSize: 11 },
   labelStrong: { color: colors.gold, fontWeight: '700' },
   pointHit: { position: 'absolute', width: 22, height: 22 },
+  selectedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.divider,
+  },
+  selectedText: { color: colors.textPrimary, fontSize: 12.5, fontWeight: '700' },
+  editLink: { color: colors.gold, fontSize: 12.5, fontWeight: '700' },
 });

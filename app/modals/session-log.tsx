@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
@@ -13,7 +13,7 @@ import { LiftHistoryChart } from '@/components/LiftHistoryChart';
 import { getFormCues } from '@/data/formCues';
 import { DateField } from '@/components/DateField';
 import { formatSet, getLastSlotLog, getLastSlotTopSet, getSlotExerciseHistory, parseSetCount } from '@/logic/sessionHistory';
-import { formatShortDate, todayISODate } from '@/logic/dates';
+import { todayISODate } from '@/logic/dates';
 import { displayValueToKg, kgToDisplayValue } from '@/logic/units';
 import type { Exercise, SetLog, WeekPrescription, WorkoutSessionLog } from '@/types';
 
@@ -181,12 +181,7 @@ export default function SessionLog() {
               <LiftHistoryChart
                 points={getSlotExerciseHistory(sessionLogs, dayId, exercise.id)}
                 weightUnit={weightUnit}
-                onPointPress={(p) =>
-                  Alert.alert(formatShortDate(p.date), formatSet(p.topSet, weightUnit), [
-                    { text: 'Cancel', style: 'cancel' },
-                    { text: 'Go to This Date', onPress: () => onDateChange(p.date) },
-                  ])
-                }
+                onPointPress={(p) => onDateChange(p.date)}
               />
 
               <View style={styles.setHeaderRow}>

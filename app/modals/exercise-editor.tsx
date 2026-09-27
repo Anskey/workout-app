@@ -13,7 +13,6 @@ import { ALL_MUSCLE_GROUPS } from '@/data/muscleGroups';
 import { LiftHistoryChart } from '@/components/LiftHistoryChart';
 import { getFormCues } from '@/data/formCues';
 import { formatSet, getLastSlotTopSet, getSlotExerciseHistory } from '@/logic/sessionHistory';
-import { formatShortDate } from '@/logic/dates';
 import type { MuscleGroup, WeekPrescription } from '@/types';
 
 export default function ExerciseEditor() {
@@ -135,15 +134,7 @@ export default function ExerciseEditor() {
               <LiftHistoryChart
                 points={history}
                 weightUnit={weightUnit}
-                onPointPress={(p) =>
-                  Alert.alert(formatShortDate(p.date), formatSet(p.topSet, weightUnit), [
-                    { text: 'Cancel', style: 'cancel' },
-                    {
-                      text: 'Edit This Entry',
-                      onPress: () => router.push({ pathname: '/modals/session-log', params: { programId, dayId, date: p.date } }),
-                    },
-                  ])
-                }
+                onPointPress={(p) => router.push({ pathname: '/modals/session-log', params: { programId, dayId, date: p.date } })}
               />
             </Card>
           )}
