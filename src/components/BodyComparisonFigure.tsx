@@ -11,8 +11,8 @@ interface Props {
   ideal: CmMap;
 }
 
-const WIDTH = 220;
-const HEIGHT = 320;
+const WIDTH = 240;
+const HEIGHT = 340;
 const CENTER_X = WIDTH / 2;
 // A circumference measurement is treated as a circle and converted to a schematic
 // half-width (circumference / 2π), then scaled to fit the figure — this gives a
@@ -21,20 +21,12 @@ const CENTER_X = WIDTH / 2;
 const PIXELS_PER_CM = 3.1;
 const toHalfWidth = (cm: number) => (cm / (2 * Math.PI)) * PIXELS_PER_CM;
 
-// Torso/leg profile points, top to bottom. Each maps to a measurement key.
-const PROFILE: { y: number; key: Exclude<MeasurementKey, 'weightKg'>; fallbackCm: number }[] = [
-  { y: 58, key: 'neckCm', fallbackCm: 35 },
-  { y: 74, key: 'shouldersCm', fallbackCm: 110 },
-  { y: 112, key: 'chestCm', fallbackCm: 92 },
-  { y: 152, key: 'waistCm', fallbackCm: 70 },
-  { y: 178, key: 'hipsCm', fallbackCm: 92 },
-  { y: 224, key: 'thighCm', fallbackCm: 56 },
-  { y: 272, key: 'calfCm', fallbackCm: 36 },
-  { y: 300, key: 'calfCm', fallbackCm: 36 }, // ankle: taper the calf point in a bit further down
-];
+type Key = Exclude<MeasurementKey, 'weightKg'>;
+const cmFor = (key: Key, fallbackCm: number, source: CmMap | undefined, fallback: CmMap) =>
+  source?.[key] ?? fallback[key] ?? fallbackCm;
 
 /** Turns an ordered ring of points into a smooth closed curve (Catmull-Rom -> cubic
- * Bezier), so the silhouette reads as a body outline instead of a straight-edged
+ * Bezier), so each body part reads as a rounded limb/torso instead of a straight-edged
  * polygon. Wraps around the ends since the ring has no start/end seam. */
 function smoothClosedPath(points: { x: number; y: number }[]): string {
   const n = points.length;
@@ -54,51 +46,100 @@ function smoothClosedPath(points: { x: number; y: number }[]): string {
   return `${d} Z`;
 }
 
-// `fallback` is the reference map: missing actual measurements fall back to the
-// reference number (so an unmeasured region matches the reference outline exactly,
-// rather than a generic average that would create a fake-looking gap), and only
-// falls back further to PROFILE's generic constant if the reference itself is missing.
-function buildPath(source: CmMap | undefined, fallback: CmMap): string {
-  const pts = PROFILE.map((p, i) => {
-    const cm = source?.[p.key] ?? fallback[p.key] ?? p.fallbackCm;
-    const half = i === PROFILE.length - 1 ? toHalfWidth(cm) * 0.55 : toHalfWidth(cm);
-    return { y: p.y, half };
-  });
-  const right = pts.map((p) => ({ x: CENTER_X + p.half, y: p.y }));
-  const left = [...pts].reverse().map((p) => ({ x: CENTER_X - p.half, y: p.y }));
+/** A closed tapered "tube" (one path per point, mirrored around a fixed local
+ * centerline) — used for the torso and, offset to each side, for each leg and arm. */
+function tubePath(centerX: number, points: { y: number; half: number }[]): string {
+  const right = points.map((p) => ({ x: centerX + p.half, y: p.y }));
+  const left = [...points].reverse().map((p) => ({ x: centerX - p.half, y: p.y }));
   return smoothClosedPath([...right, ...left]);
 }
 
-/** A tiny paired-circle comparator for a limb measurement that doesn't sit on the
- * main torso profile (bicep, forearm) — actual as a filled circle, reference as a
- * dashed outline, both to the same cm-to-radius scale as the main silhouette. */
-function LimbBadge({ actualCm, idealCm, x, y }: { actualCm?: number; idealCm: number; x: number; y: number }) {
-  const idealR = toHalfWidth(idealCm) * 0.9;
-  const actualR = toHalfWidth(actualCm ?? idealCm) * 0.9;
+const TORSO_PROFILE: { y: number; key: Key; fallbackCm: number }[] = [
+  { y: 56, key: 'neckCm', fallbackCm: 35 },
+  { y: 74, key: 'shouldersCm', fallbackCm: 110 },
+  { y: 108, key: 'chestCm', fallbackCm: 92 },
+  { y: 146, key: 'waistCm', fallbackCm: 70 },
+  { y: 172, key: 'hipsCm', fallbackCm: 92 },
+];
+
+const LEG_PROFILE = [
+  { y: 180, key: 'thighCm' as Key, fallbackCm: 56, factor: 0.7 }, // hip/groin attach — narrower than mid-thigh so the two legs don't cross
+  { y: 212, key: 'thighCm' as Key, fallbackCm: 56, factor: 1 },
+  { y: 250, key: 'thighCm' as Key, fallbackCm: 56, factor: 0.55 },
+  { y: 278, key: 'calfCm' as Key, fallbackCm: 36, factor: 1 },
+  { y: 306, key: 'calfCm' as Key, fallbackCm: 36, factor: 0.5 },
+];
+
+// Evenly spaced and monotonically narrowing after the bicep peak, so the arm reads
+// as one tapered limb rather than pinching in and flaring back out at the elbow.
+const ARM_PROFILE = [
+  { y: 84, key: 'bicepCm' as Key, fallbackCm: 30, factor: 0.9 },
+  { y: 122, key: 'bicepCm' as Key, fallbackCm: 30, factor: 1 },
+  { y: 160, key: 'forearmCm' as Key, fallbackCm: 25, factor: 1.05 },
+  { y: 200, key: 'forearmCm' as Key, fallbackCm: 25, factor: 0.55 },
+];
+
+interface FigurePaths {
+  torso: string;
+  legL: string;
+  legR: string;
+  armL: string;
+  armR: string;
+}
+
+function buildFigure(source: CmMap | undefined, fallback: CmMap): FigurePaths {
+  const torsoPts = TORSO_PROFILE.map((p) => ({ y: p.y, half: toHalfWidth(cmFor(p.key, p.fallbackCm, source, fallback)) }));
+  const torso = tubePath(CENTER_X, torsoPts);
+
+  const hipHalf = torsoPts[torsoPts.length - 1].half;
+  const shoulderHalf = torsoPts[1].half;
+
+  const legPts = LEG_PROFILE.map((p) => ({ y: p.y, half: toHalfWidth(cmFor(p.key, p.fallbackCm, source, fallback)) * p.factor }));
+  const armPts = ARM_PROFILE.map((p) => ({ y: p.y, half: toHalfWidth(cmFor(p.key, p.fallbackCm, source, fallback)) * p.factor }));
+
+  // Keep a visible gap between the legs (offset comfortably past the widest thigh
+  // point) and between the arms and the torso (offset past the shoulder edge).
+  const widestLegHalf = Math.max(...legPts.map((p) => p.half));
+  const legOffset = Math.max(hipHalf * 0.45, widestLegHalf * 1.15);
+  const armOffset = shoulderHalf + armPts[1].half * 0.5;
+
+  return {
+    torso,
+    legL: tubePath(CENTER_X - legOffset, legPts),
+    legR: tubePath(CENTER_X + legOffset, legPts),
+    armL: tubePath(CENTER_X - armOffset, armPts),
+    armR: tubePath(CENTER_X + armOffset, armPts),
+  };
+}
+
+function FigureLayer({ paths, variant }: { paths: FigurePaths; variant: 'actual' | 'ideal' }) {
+  const props =
+    variant === 'actual'
+      ? { fill: colors.gold, fillOpacity: 0.32, stroke: colors.gold, strokeWidth: 2.2 }
+      : { fill: 'none', stroke: colors.navyDeep, strokeWidth: 1.6, strokeDasharray: '5,3.5', opacity: 0.6 };
   return (
     <React.Fragment>
-      <Circle cx={x} cy={y} r={idealR} stroke={colors.navyDeep} strokeWidth={1.3} strokeDasharray="3,2.5" fill="none" opacity={0.55} />
-      <Circle cx={x} cy={y} r={actualR} fill={colors.gold} fillOpacity={0.4} stroke={colors.gold} strokeWidth={1.6} />
+      <Path d={paths.armL} {...props} />
+      <Path d={paths.armR} {...props} />
+      <Path d={paths.legL} {...props} />
+      <Path d={paths.legR} {...props} />
+      <Path d={paths.torso} {...props} />
     </React.Fragment>
   );
 }
 
 export function BodyComparisonFigure({ actual, ideal }: Props) {
-  const actualPath = useMemo(() => buildPath(actual, ideal), [actual, ideal]);
-  const idealPath = useMemo(() => buildPath(ideal, ideal), [ideal]);
+  const actualFigure = useMemo(() => buildFigure(actual, ideal), [actual, ideal]);
+  const idealFigure = useMemo(() => buildFigure(ideal, ideal), [ideal]);
 
   const hasAnyData = actual && (Object.keys(ideal) as (keyof CmMap)[]).some((k) => actual[k] != null);
 
   return (
     <View style={styles.wrap}>
       <Svg width={WIDTH} height={HEIGHT} viewBox={`0 0 ${WIDTH} ${HEIGHT}`}>
-        <Circle cx={CENTER_X} cy={32} r={18} fill={colors.surface} stroke={colors.navyDeep} strokeWidth={1.3} opacity={0.5} />
-        <Path d={idealPath} stroke={colors.navyDeep} strokeWidth={1.6} strokeDasharray="5,3.5" fill="none" opacity={0.6} />
-        <Path d={actualPath} fill={colors.gold} fillOpacity={0.3} stroke={colors.gold} strokeWidth={2.2} />
-        <LimbBadge actualCm={actual?.bicepCm} idealCm={ideal.bicepCm ?? 30} x={CENTER_X + 60} y={100} />
-        <LimbBadge actualCm={actual?.bicepCm} idealCm={ideal.bicepCm ?? 30} x={CENTER_X - 60} y={100} />
-        <LimbBadge actualCm={actual?.forearmCm} idealCm={ideal.forearmCm ?? 25} x={CENTER_X + 66} y={150} />
-        <LimbBadge actualCm={actual?.forearmCm} idealCm={ideal.forearmCm ?? 25} x={CENTER_X - 66} y={150} />
+        <Circle cx={CENTER_X} cy={30} r={17} fill={colors.surface} stroke={colors.navyDeep} strokeWidth={1.3} opacity={0.5} />
+        <FigureLayer paths={idealFigure} variant="ideal" />
+        <FigureLayer paths={actualFigure} variant="actual" />
       </Svg>
       <View style={styles.legendRow}>
         <View style={styles.legendItem}>
