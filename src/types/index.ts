@@ -113,6 +113,9 @@ export interface NutritionEntry {
 export interface SetLog {
   weightKg?: number;
   reps?: number;
+  /** Extra partial reps performed after reaching failure/target RPE on full reps —
+   * from techniques like "Lengthened Partials" or "Integrated Partials" (e.g. "10+3"). */
+  partialReps?: number;
 }
 
 export interface ExerciseSessionLog {

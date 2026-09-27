@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
@@ -11,6 +11,7 @@ import { ModalHeader } from '@/components/ModalHeader';
 import { useStore } from '@/store/useStore';
 import { IDEAL_PRESETS, IDEAL_PRESET_ORDER } from '@/data/idealRatios';
 import { compareToIdeal, getLatestMeasurement, getSuggestedGoal } from '@/logic/recommendations';
+import { exportData, importData } from '@/logic/dataPortability';
 import type { ActivityLevel, Goal, IdealPreset, LengthUnit, Sex, WeightUnit } from '@/types';
 
 const GOALS: { key: Goal; label: string }[] = [
@@ -42,6 +43,8 @@ export default function EditProfile() {
   const [weightUnit, setWeightUnit] = useState<WeightUnit>(profile.weightUnit);
   const [lengthUnit, setLengthUnit] = useState<LengthUnit>(profile.lengthUnit);
   const [idealPreset, setIdealPreset] = useState<IdealPreset>(profile.idealPreset);
+  const [exporting, setExporting] = useState(false);
+  const [importing, setImporting] = useState(false);
 
   // Live preview of what "Auto" would resolve to, using the in-progress edits above
   // (sex/height/reference), so switching presets updates the suggestion immediately.
@@ -64,6 +67,37 @@ export default function EditProfile() {
       idealPreset,
     });
     router.back();
+  };
+
+  const onExport = async () => {
+    setExporting(true);
+    const result = await exportData();
+    setExporting(false);
+    if (!result.ok) Alert.alert('Export failed', result.error ?? 'Something went wrong.');
+  };
+
+  const onImport = () => {
+    Alert.alert(
+      'Import data?',
+      'This replaces everything currently in the app (programs, measurements, nutrition and workout logs) with what’s in the chosen file. This can’t be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Choose File…',
+          style: 'destructive',
+          onPress: async () => {
+            setImporting(true);
+            const result = await importData();
+            setImporting(false);
+            if (!result.ok && !result.cancelled) {
+              Alert.alert('Import failed', result.error ?? 'Something went wrong.');
+            } else if (result.ok) {
+              Alert.alert('Import complete', 'Your data has been replaced with the imported backup.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -133,6 +167,22 @@ export default function EditProfile() {
 
         <Button label="Save" onPress={onSave} style={{ marginTop: 20 }} />
         <Button label="Account & Sync" variant="ghost" onPress={() => router.push('/modals/account')} style={{ marginTop: 14 }} />
+
+        <SectionHeader>Backup</SectionHeader>
+        <Text style={styles.backupHint}>
+          Export saves everything to a file you can keep or move to another device manually. Import replaces the
+          app&rsquo;s current data with a previously exported file.
+        </Text>
+        {exporting ? (
+          <ActivityIndicator color={colors.navyDeep} style={{ marginTop: 10 }} />
+        ) : (
+          <Button label="Export Data" variant="outline" onPress={onExport} style={{ marginTop: 4 }} />
+        )}
+        {importing ? (
+          <ActivityIndicator color={colors.navyDeep} style={{ marginTop: 10 }} />
+        ) : (
+          <Button label="Import Data" variant="ghost" onPress={onImport} style={{ marginTop: 10 }} />
+        )}
       </FormScrollView>
     </SafeAreaView>
   );
@@ -154,4 +204,5 @@ const styles = StyleSheet.create({
   },
   pillRow: { flexDirection: 'row', marginBottom: 10 },
   presetDescription: { color: colors.textFaint, fontSize: 12, lineHeight: 17, marginTop: -2, marginBottom: 4 },
+  backupHint: { color: colors.textSecondary, fontSize: 12.5, lineHeight: 18, marginBottom: 10 },
 });

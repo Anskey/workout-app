@@ -40,9 +40,16 @@ export default function Home() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <ScreenTitle subtitle={new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}>
-          {profile.name ? `Hi, ${profile.name}` : 'Welcome back'}
-        </ScreenTitle>
+        <View style={styles.titleRow}>
+          <View style={{ flex: 1 }}>
+            <ScreenTitle subtitle={new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}>
+              {profile.name ? `Hi, ${profile.name}` : 'Welcome back'}
+            </ScreenTitle>
+          </View>
+          <Pressable onPress={() => router.push('/modals/edit-profile')}>
+            <Text style={styles.editProfileLink}>Profile & Goals</Text>
+          </Pressable>
+        </View>
 
         {reminder.due && (
           <Card style={styles.reminderCard}>
@@ -143,6 +150,8 @@ function SuggestionRow({ text, badge, badgeColor, isLast }: { text: string; badg
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scroll: { padding: 22, paddingBottom: 120 },
+  titleRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  editProfileLink: { color: colors.gold, fontSize: 12.5, fontWeight: '600', marginTop: 6 },
   reminderCard: { flexDirection: 'row', alignItems: 'center', marginBottom: 18, gap: 12 },
   reminderTitle: { color: colors.textPrimary, fontWeight: '700', fontSize: 14.5 },
   reminderCopy: { color: colors.textSecondary, fontSize: 12.5, marginTop: 2 },

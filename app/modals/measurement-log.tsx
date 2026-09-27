@@ -1,15 +1,15 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, StyleSheet, Text } from 'react-native';
+import { Alert, StyleSheet } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors } from '@/theme/colors';
 import { Button, SectionHeader } from '@/theme/ui';
 import { Card } from '@/theme/Card';
 import { FormScrollView } from '@/components/FormScrollView';
 import { ModalHeader } from '@/components/ModalHeader';
 import { MeasurementField } from '@/components/MeasurementField';
+import { DateField } from '@/components/DateField';
 import { useStore } from '@/store/useStore';
-import { formatLongDate, todayISODate } from '@/logic/dates';
+import { todayISODate } from '@/logic/dates';
 import { measurementFromDisplay, measurementToDisplay, measurementUnitLabel } from '@/logic/units';
 import type { MeasurementKey } from '@/types';
 
@@ -36,7 +36,7 @@ export default function MeasurementLog() {
   const lengthUnit = useStore((s) => s.profile.lengthUnit);
 
   const existing = useMemo(() => measurements.find((m) => m.id === entryId), [measurements, entryId]);
-  const date = existing?.date ?? todayISODate();
+  const [date, setDate] = useState(existing?.date ?? todayISODate());
 
   const [values, setValues] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
@@ -56,7 +56,7 @@ export default function MeasurementLog() {
       if (Number.isFinite(n)) parsed[f.key] = measurementFromDisplay(f.key, n, weightUnit, lengthUnit);
     });
     if (existing) {
-      updateMeasurement({ ...existing, ...parsed });
+      updateMeasurement({ ...existing, date, ...parsed });
     } else {
       addMeasurement({ date, ...parsed });
     }
@@ -75,7 +75,7 @@ export default function MeasurementLog() {
     <SafeAreaView style={styles.container}>
       <FormScrollView contentContainerStyle={styles.scroll}>
         <ModalHeader title="Measurements" />
-        <Text style={styles.dateLabel}>{formatLongDate(date)}</Text>
+        <DateField dateISO={date} onChange={setDate} />
 
         <Card>
           <SectionHeader>Values</SectionHeader>
@@ -100,5 +100,4 @@ export default function MeasurementLog() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scroll: { padding: 22 },
-  dateLabel: { color: colors.textFaint, fontSize: 12, marginBottom: 14, textTransform: 'uppercase', letterSpacing: 0.6, marginTop: -8 },
 });

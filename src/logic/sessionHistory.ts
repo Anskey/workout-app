@@ -60,5 +60,6 @@ export function getExerciseHistory(sessionLogs: WorkoutSessionLog[], exerciseNam
 export function formatSet(set: SetLog | undefined, unit: WeightUnit): string {
   if (!set) return '';
   const weight = set.weightKg != null ? `${kgToDisplayValue(set.weightKg, unit)}${unit}` : 'bodyweight';
-  return set.reps != null ? `${weight} × ${set.reps}` : weight;
+  const reps = set.reps != null ? `${set.reps}${set.partialReps ? `+${set.partialReps}` : ''}` : undefined;
+  return reps ? `${weight} × ${reps}` : weight;
 }

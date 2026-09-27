@@ -47,6 +47,12 @@ export default function Program() {
   if (!program) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={[styles.titleRow, { paddingHorizontal: 22, paddingTop: 12 }]}>
+          <View style={{ flex: 1 }} />
+          <Pressable onPress={() => router.push('/modals/edit-profile')}>
+            <Text style={styles.editProfileLink}>Profile & Goals</Text>
+          </Pressable>
+        </View>
         <View style={styles.empty}>
           <Text style={styles.emptyText}>No program yet.</Text>
           <Button label="Create a Program" onPress={() => router.push('/modals/program-picker')} style={{ marginTop: 16 }} />
@@ -60,8 +66,13 @@ export default function Program() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <View style={styles.headerRow}>
-          <ScreenTitle subtitle={`${program.days.length} workout days`}>Program</ScreenTitle>
+        <View style={[styles.headerRow, styles.titleRow]}>
+          <View style={{ flex: 1 }}>
+            <ScreenTitle subtitle={`${program.days.length} workout days`}>Program</ScreenTitle>
+          </View>
+          <Pressable onPress={() => router.push('/modals/edit-profile')}>
+            <Text style={styles.editProfileLink}>Profile & Goals</Text>
+          </Pressable>
         </View>
 
         <Pressable onPress={() => router.push('/modals/program-picker')} style={{ marginBottom: 18 }}>
@@ -267,6 +278,8 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   scroll: { padding: 22, paddingBottom: 140 },
   headerRow: { marginBottom: 2 },
+  titleRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  editProfileLink: { color: colors.gold, fontSize: 12.5, fontWeight: '600', marginTop: 6 },
   programName: { fontFamily: serif, fontSize: 18, color: colors.textPrimary },
   blockLabel: { color: colors.textFaint, fontSize: 12, marginBottom: 14, marginTop: -8 },
   pillRow: { flexDirection: 'row', flexWrap: 'wrap' },

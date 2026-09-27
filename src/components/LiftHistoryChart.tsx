@@ -40,7 +40,7 @@ export function LiftHistoryChart({ points, weightUnit }: Props) {
     const w = kgToDisplayValue(p.topSet.weightKg ?? 0, weightUnit);
     const x = PAD_X + (points.length === 1 ? 0 : (i / (points.length - 1)) * (WIDTH - PAD_X * 2));
     const y = HEIGHT - PAD_Y - ((w - min) / span) * (HEIGHT - PAD_Y * 2);
-    return { x, y, w, reps: p.topSet.reps, date: p.date };
+    return { x, y, w, reps: p.topSet.reps, partialReps: p.topSet.partialReps, date: p.date };
   });
 
   const linePoints = coords.map((c) => `${c.x},${c.y}`).join(' ');
@@ -74,12 +74,12 @@ export function LiftHistoryChart({ points, weightUnit }: Props) {
         <Text style={styles.labelText}>
           {formatShortDate(first.date)} · {first.w}
           {weightUnit}
-          {first.reps != null ? ` × ${first.reps}` : ''}
+          {first.reps != null ? ` × ${first.reps}${first.partialReps ? `+${first.partialReps}` : ''}` : ''}
         </Text>
         <Text style={[styles.labelText, styles.labelStrong]}>
           {formatShortDate(last.date)} · {last.w}
           {weightUnit}
-          {last.reps != null ? ` × ${last.reps}` : ''}
+          {last.reps != null ? ` × ${last.reps}${last.partialReps ? `+${last.partialReps}` : ''}` : ''}
         </Text>
       </View>
     </View>

@@ -28,7 +28,14 @@ export default function Nutrition() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <ScreenTitle subtitle="Daily calories, protein, and weight — with weekly-trend suggestions.">Nutrition</ScreenTitle>
+        <View style={styles.titleRow}>
+          <View style={{ flex: 1 }}>
+            <ScreenTitle subtitle="Daily calories, protein, and weight — with weekly-trend suggestions.">Nutrition</ScreenTitle>
+          </View>
+          <Pressable onPress={() => router.push('/modals/edit-profile')}>
+            <Text style={styles.editProfileLink}>Profile & Goals</Text>
+          </Pressable>
+        </View>
 
         <Card style={{ marginBottom: 18 }}>
           <View style={styles.statsRow}>
@@ -97,6 +104,8 @@ export default function Nutrition() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scroll: { padding: 22, paddingBottom: 140 },
+  titleRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  editProfileLink: { color: colors.gold, fontSize: 12.5, fontWeight: '600', marginTop: 6 },
   statsRow: { flexDirection: 'row', gap: 16 },
   suggestionRow: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 10, gap: 10 },
   suggestionRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.divider },

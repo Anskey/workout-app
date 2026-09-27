@@ -1,15 +1,15 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, StyleSheet, Text } from 'react-native';
+import { Alert, StyleSheet } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors } from '@/theme/colors';
 import { Button, SectionHeader } from '@/theme/ui';
 import { Card } from '@/theme/Card';
 import { FormScrollView } from '@/components/FormScrollView';
 import { ModalHeader } from '@/components/ModalHeader';
 import { MeasurementField } from '@/components/MeasurementField';
+import { DateField } from '@/components/DateField';
 import { useStore } from '@/store/useStore';
-import { formatLongDate, todayISODate } from '@/logic/dates';
+import { todayISODate } from '@/logic/dates';
 import { displayValueToKg, kgToDisplayValue } from '@/logic/units';
 
 export default function NutritionLog() {
@@ -20,7 +20,7 @@ export default function NutritionLog() {
   const weightUnit = useStore((s) => s.profile.weightUnit);
 
   const existing = useMemo(() => nutritionLogs.find((n) => n.id === entryId), [nutritionLogs, entryId]);
-  const date = existing?.date ?? todayISODate();
+  const [date, setDate] = useState(existing?.date ?? todayISODate());
 
   const [calories, setCalories] = useState(existing?.calories ? String(existing.calories) : '');
   const [proteinG, setProteinG] = useState(existing?.proteinG ? String(existing.proteinG) : '');
@@ -52,7 +52,7 @@ export default function NutritionLog() {
     <SafeAreaView style={styles.container}>
       <FormScrollView contentContainerStyle={styles.scroll}>
           <ModalHeader title="Daily Log" />
-          <Text style={styles.dateLabel}>{formatLongDate(date)}</Text>
+          <DateField dateISO={date} onChange={setDate} />
 
           <Card>
             <SectionHeader>Today</SectionHeader>
@@ -71,5 +71,4 @@ export default function NutritionLog() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scroll: { padding: 22 },
-  dateLabel: { color: colors.textFaint, fontSize: 12, marginBottom: 14, textTransform: 'uppercase', letterSpacing: 0.6, marginTop: -8 },
 });

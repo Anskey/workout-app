@@ -11,8 +11,9 @@ import { useStore } from '@/store/useStore';
 import { getMuscleColor } from '@/data/muscleGroups';
 import { LiftHistoryChart } from '@/components/LiftHistoryChart';
 import { getFormCues } from '@/data/formCues';
+import { DateField } from '@/components/DateField';
 import { formatSet, getExerciseHistory, getLastExerciseLog, getLastTopSet, parseSetCount } from '@/logic/sessionHistory';
-import { formatLongDate, todayISODate } from '@/logic/dates';
+import { todayISODate } from '@/logic/dates';
 import { displayValueToKg, kgToDisplayValue } from '@/logic/units';
 import type { Exercise, SetLog, WeekPrescription, WorkoutSessionLog } from '@/types';
 
@@ -45,18 +46,31 @@ export default function SessionLog() {
   const program = programs.find((p) => p.id === programId);
   const day = program?.days.find((d) => d.id === dayId);
   const week = program?.currentWeek ?? 1;
-  const today = todayISODate();
 
-  const existingLog = sessionLogs.find((l) => l.programId === programId && l.dayId === dayId && l.date === today);
-
-  const [setsByExercise, setSetsByExercise] = useState<Record<string, SetLog[]>>(() => {
+  // Builds every exercise's set rows for a given date — whatever was already logged
+  // that day, if anything. Used both for the initial load and whenever the user picks
+  // a different date, so switching dates is a plain event-driven update rather than an
+  // effect syncing state after the fact.
+  const buildSetsForDate = (targetDate: string): Record<string, SetLog[]> => {
     const init: Record<string, SetLog[]> = {};
-    day?.exercises.forEach((exercise) => {
-      const fromToday = existingLog?.exerciseLogs.find((e) => e.exerciseId === exercise.id && e.exerciseName === exercise.name)?.sets;
-      init[exercise.id] = initialSets(exercise, week, sessionLogs, fromToday);
+    if (!day) return init;
+    const logForDate = sessionLogs.find((l) => l.programId === programId && l.dayId === dayId && l.date === targetDate);
+    day.exercises.forEach((exercise) => {
+      const fromDate = logForDate?.exerciseLogs.find((e) => e.exerciseId === exercise.id && e.exerciseName === exercise.name)?.sets;
+      init[exercise.id] = initialSets(exercise, week, sessionLogs, fromDate);
     });
     return init;
-  });
+  };
+
+  const [date, setDate] = useState(todayISODate());
+  const [setsByExercise, setSetsByExercise] = useState<Record<string, SetLog[]>>(() => buildSetsForDate(todayISODate()));
+
+  const existingLog = sessionLogs.find((l) => l.programId === programId && l.dayId === dayId && l.date === date);
+
+  const onDateChange = (newDate: string) => {
+    setDate(newDate);
+    setSetsByExercise(buildSetsForDate(newDate));
+  };
 
   // When an exercise is swapped from inside the log, its old entries no longer apply.
   const namesRef = useRef<Record<string, string>>({});
@@ -72,7 +86,7 @@ export default function SessionLog() {
     });
   }, [day, week, sessionLogs]);
 
-  const updateSet = (exerciseId: string, index: number, field: 'weightKg' | 'reps', text: string) => {
+  const updateSet = (exerciseId: string, index: number, field: 'weightKg' | 'reps' | 'partialReps', text: string) => {
     const n = parseFloat(text);
     const value = Number.isFinite(n) ? (field === 'weightKg' ? displayValueToKg(n, weightUnit) : n) : undefined;
     setSetsByExercise((prev) => {
@@ -86,7 +100,7 @@ export default function SessionLog() {
     if (!program || !day || !programId || !dayId) return;
     upsertSessionLog({
       id: existingLog?.id,
-      date: today,
+      date,
       programId,
       dayId,
       dayName: day.name,
@@ -105,7 +119,7 @@ export default function SessionLog() {
     <SafeAreaView style={styles.container}>
       <FormScrollView contentContainerStyle={styles.scroll}>
         <ModalHeader title={day.name} />
-        <Text style={styles.dateLabel}>{formatLongDate(today)}</Text>
+        <DateField dateISO={date} onChange={onDateChange} />
 
         {day.exercises.map((exercise) => {
           const prescription = currentPrescription(exercise, week);
@@ -147,7 +161,8 @@ export default function SessionLog() {
                 <Text style={[styles.setHeaderLabel, { flex: 1 }]}>Set</Text>
                 <Text style={styles.setHeaderLabel}>Weight ({weightUnit})</Text>
                 <Text style={styles.setHeaderLabel}>Reps</Text>
-                <Text style={styles.setHeaderLabel}>RPE</Text>
+                <Text style={styles.setHeaderLabelNarrow}>+Partial</Text>
+                <Text style={styles.setHeaderLabelNarrow}>RPE</Text>
               </View>
               {sets.map((set, i) => {
                 const rpe = rpeForSet(prescription, i, sets.length);
@@ -170,6 +185,14 @@ export default function SessionLog() {
                       placeholderTextColor={colors.textFaint}
                       style={styles.setInput}
                     />
+                    <TextInput
+                      value={set.partialReps != null ? String(set.partialReps) : ''}
+                      onChangeText={(t) => updateSet(exercise.id, i, 'partialReps', t)}
+                      keyboardType="number-pad"
+                      placeholder="—"
+                      placeholderTextColor={colors.textFaint}
+                      style={styles.setInputNarrow}
+                    />
                     <Text style={styles.rpeLabel}>{rpe ? rpe.replace('~', '') : '—'}</Text>
                   </View>
                 );
@@ -187,7 +210,6 @@ export default function SessionLog() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scroll: { padding: 22 },
-  dateLabel: { color: colors.textFaint, fontSize: 12, marginBottom: 18, textTransform: 'uppercase', letterSpacing: 0.6, marginTop: -8 },
   titleRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },
   exerciseName: { color: colors.textPrimary, fontSize: 16, fontWeight: '700', flex: 1 },
   swapLink: { color: colors.navyDeep, fontSize: 13, fontWeight: '600', marginTop: 2 },
@@ -196,13 +218,25 @@ const styles = StyleSheet.create({
   lastText: { color: colors.gold, fontSize: 12.5, marginTop: 3, fontWeight: '600' },
   cuesBox: { marginTop: 8, backgroundColor: colors.bgAlt, borderRadius: 2, padding: 10 },
   cueText: { color: colors.textSecondary, fontSize: 12, lineHeight: 17 },
-  setHeaderRow: { flexDirection: 'row', alignItems: 'center', marginTop: 14, marginBottom: 6, gap: 10 },
-  setHeaderLabel: { color: colors.textFaint, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, width: 90, textAlign: 'center' },
-  setRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 10 },
+  setHeaderRow: { flexDirection: 'row', alignItems: 'center', marginTop: 14, marginBottom: 6, gap: 6 },
+  setHeaderLabel: { color: colors.textFaint, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, width: 74, textAlign: 'center' },
+  setHeaderLabelNarrow: { color: colors.textFaint, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: 0.3, width: 50, textAlign: 'center' },
+  setRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 6 },
   setLabel: { color: colors.textSecondary, fontSize: 14 },
-  rpeLabel: { color: colors.textSecondary, fontSize: 13, fontWeight: '600', width: 90, textAlign: 'center' },
+  rpeLabel: { color: colors.textSecondary, fontSize: 13, fontWeight: '600', width: 50, textAlign: 'center' },
   setInput: {
-    width: 90,
+    width: 74,
+    textAlign: 'center',
+    color: colors.textPrimary,
+    fontSize: 15,
+    backgroundColor: colors.surface,
+    borderRadius: 2,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    paddingVertical: 8,
+  },
+  setInputNarrow: {
+    width: 50,
     textAlign: 'center',
     color: colors.textPrimary,
     fontSize: 15,
