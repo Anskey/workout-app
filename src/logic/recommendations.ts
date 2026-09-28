@@ -18,7 +18,7 @@ export function measurementReminderInfo(measurements: MeasurementEntry[]) {
 }
 
 export interface MeasurementComparison {
-  key: Exclude<MeasurementKey, 'weightKg'>;
+  key: MeasurementKey;
   label: string;
   actual: number;
   ideal: number;
@@ -32,7 +32,7 @@ const LAG_THRESHOLD_PCT = 8;
 export function compareToIdeal(latest: MeasurementEntry | undefined, profile: UserProfile): MeasurementComparison[] {
   if (!latest) return [];
   const ideal = getIdealMeasurements(profile.heightCm, profile.sex, profile.idealPreset);
-  const keys = Object.keys(ideal) as Exclude<MeasurementKey, 'weightKg'>[];
+  const keys = Object.keys(ideal) as MeasurementKey[];
   const out: MeasurementComparison[] = [];
   keys.forEach((key) => {
     const actual = latest[key];
@@ -131,7 +131,6 @@ const GOAL_WEEKLY_RANGE: Record<Goal, [number, number]> = {
 
 export function getNutritionSuggestion(
   nutritionLogs: NutritionEntry[],
-  latestMeasurement: MeasurementEntry | undefined,
   goal: Goal
 ): NutritionSuggestion {
   const sorted = [...nutritionLogs].sort((a, b) => a.date.localeCompare(b.date));
@@ -139,7 +138,7 @@ export function getNutritionSuggestion(
   const avgCalories = average(last7.map((l) => l.calories).filter((v): v is number => v != null));
   const avgProteinG = average(last7.map((l) => l.proteinG).filter((v): v is number => v != null));
 
-  const latestWeight = last7.slice().reverse().find((l) => l.weightKg != null)?.weightKg ?? latestMeasurement?.weightKg;
+  const latestWeight = last7.slice().reverse().find((l) => l.weightKg != null)?.weightKg;
   // ~1g per lb bodyweight (2.2g/kg) — the standard bodybuilding heuristic, above the
   // more conservative clinical minimum (~1.6-2.0g/kg) this app used previously.
   const proteinTargetG = latestWeight ? Math.round(latestWeight * 2.2) : null;

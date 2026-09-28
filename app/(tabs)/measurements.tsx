@@ -10,7 +10,7 @@ import { ChevronRightIcon } from '@/components/Icons';
 import { useStore } from '@/store/useStore';
 import { compareToIdeal, getLatestMeasurement } from '@/logic/recommendations';
 import { formatLongDate } from '@/logic/dates';
-import { formatLength, formatWeight } from '@/logic/units';
+import { formatLength } from '@/logic/units';
 import { IDEAL_PRESETS, getIdealMeasurements } from '@/data/idealRatios';
 import { BodyComparisonFigure } from '@/components/BodyComparisonFigure';
 
@@ -74,9 +74,12 @@ export default function Measurements() {
                 <View style={{ flex: 1 }}>
                   <Text style={styles.rowDate}>{formatLongDate(m.date)}</Text>
                   <Text style={styles.rowMeta}>
-                    {m.weightKg ? formatWeight(m.weightKg, profile.weightUnit) : '—'}
-                    {m.waistCm ? ` · waist ${formatLength(m.waistCm, profile.lengthUnit)}` : ''}
-                    {m.calfCm ? ` · calf ${formatLength(m.calfCm, profile.lengthUnit)}` : ''}
+                    {[
+                      m.waistCm ? `waist ${formatLength(m.waistCm, profile.lengthUnit)}` : null,
+                      m.calfCm ? `calf ${formatLength(m.calfCm, profile.lengthUnit)}` : null,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ') || '—'}
                   </Text>
                 </View>
                 <Text style={styles.editHint}>Edit</Text>

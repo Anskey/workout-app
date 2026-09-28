@@ -86,7 +86,6 @@ export interface WorkoutProgram {
 }
 
 export type MeasurementKey =
-  | 'weightKg'
   | 'neckCm'
   | 'shouldersCm'
   | 'chestCm'

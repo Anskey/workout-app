@@ -10,9 +10,9 @@ interface PresetTable {
   label: string;
   description: string;
   femaleRefHeightCm: number;
-  femaleRefCm: Record<Exclude<MeasurementKey, 'weightKg'>, number>;
+  femaleRefCm: Record<MeasurementKey, number>;
   maleRefHeightCm: number;
-  maleRefCm: Record<Exclude<MeasurementKey, 'weightKg'>, number>;
+  maleRefCm: Record<MeasurementKey, number>;
 }
 
 export const IDEAL_PRESETS: Record<IdealPreset, PresetTable> = {
@@ -56,20 +56,19 @@ export function getIdealMeasurements(
   heightCm: number,
   sex: Sex,
   preset: IdealPreset = 'editorial'
-): Record<Exclude<MeasurementKey, 'weightKg'>, number> {
+): Record<MeasurementKey, number> {
   const table = IDEAL_PRESETS[preset] ?? IDEAL_PRESETS.editorial;
   const ref = sex === 'female' ? table.femaleRefCm : table.maleRefCm;
   const refHeight = sex === 'female' ? table.femaleRefHeightCm : table.maleRefHeightCm;
   const scale = heightCm / refHeight;
-  const out = {} as Record<Exclude<MeasurementKey, 'weightKg'>, number>;
-  (Object.keys(ref) as Exclude<MeasurementKey, 'weightKg'>[]).forEach((key) => {
+  const out = {} as Record<MeasurementKey, number>;
+  (Object.keys(ref) as MeasurementKey[]).forEach((key) => {
     out[key] = Math.round(ref[key] * scale * 10) / 10;
   });
   return out;
 }
 
 export const MEASUREMENT_LABELS: Record<MeasurementKey, string> = {
-  weightKg: 'Body Weight',
   neckCm: 'Neck',
   shouldersCm: 'Shoulders',
   chestCm: 'Chest / Bust',
@@ -83,7 +82,7 @@ export const MEASUREMENT_LABELS: Record<MeasurementKey, string> = {
 
 // Whether "bigger than reference" is the desirable direction for this measurement.
 // Waist is the one measurement where smaller-than-reference is the flattering direction.
-export const GROW_TOWARD_IDEAL: Record<Exclude<MeasurementKey, 'weightKg'>, boolean> = {
+export const GROW_TOWARD_IDEAL: Record<MeasurementKey, boolean> = {
   neckCm: true,
   shouldersCm: true,
   chestCm: true,
@@ -97,7 +96,7 @@ export const GROW_TOWARD_IDEAL: Record<Exclude<MeasurementKey, 'weightKg'>, bool
 
 // Maps a measurement to the trainable muscle group it corresponds to, for
 // tying measurement gaps back into workout-program suggestions.
-export const MEASUREMENT_TO_MUSCLE: Partial<Record<Exclude<MeasurementKey, 'weightKg'>, MuscleGroup>> = {
+export const MEASUREMENT_TO_MUSCLE: Partial<Record<MeasurementKey, MuscleGroup>> = {
   neckCm: 'Neck',
   shouldersCm: 'Shoulders',
   chestCm: 'Chest',

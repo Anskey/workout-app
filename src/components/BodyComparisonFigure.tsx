@@ -4,7 +4,7 @@ import Svg, { Circle, Path } from 'react-native-svg';
 import { colors } from '@/theme/colors';
 import type { MeasurementEntry, MeasurementKey } from '@/types';
 
-type CmMap = Partial<Record<Exclude<MeasurementKey, 'weightKg'>, number>>;
+type CmMap = Partial<Record<MeasurementKey, number>>;
 
 interface Props {
   actual: MeasurementEntry | undefined;
@@ -21,7 +21,7 @@ const CENTER_X = WIDTH / 2;
 const PIXELS_PER_CM = 3.1;
 const toHalfWidth = (cm: number) => (cm / (2 * Math.PI)) * PIXELS_PER_CM;
 
-type Key = Exclude<MeasurementKey, 'weightKg'>;
+type Key = MeasurementKey;
 const cmFor = (key: Key, fallbackCm: number, source: CmMap | undefined, fallback: CmMap) =>
   source?.[key] ?? fallback[key] ?? fallbackCm;
 

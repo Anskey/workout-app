@@ -33,7 +33,7 @@ export default function Home() {
   const comparisons = compareToIdeal(latest, profile);
   const workoutSuggestions = getWorkoutSuggestions(comparisons, activeProgram).slice(0, 3);
   const effectiveGoal = profile.goalMode === 'auto' ? getSuggestedGoal(comparisons) : profile.goal;
-  const nutritionSuggestion = getNutritionSuggestion(nutritionLogs, latest, effectiveGoal);
+  const nutritionSuggestion = getNutritionSuggestion(nutritionLogs, effectiveGoal);
 
   const today = todayISODate();
   const todayLog = nutritionLogs.find((n) => n.date === today);

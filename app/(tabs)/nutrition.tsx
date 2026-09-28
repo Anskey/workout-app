@@ -22,7 +22,7 @@ export default function Nutrition() {
   const latestMeasurement = getLatestMeasurement(measurements);
   const comparisons = compareToIdeal(latestMeasurement, profile);
   const effectiveGoal = profile.goalMode === 'auto' ? getSuggestedGoal(comparisons) : profile.goal;
-  const suggestion = getNutritionSuggestion(nutritionLogs, latestMeasurement, effectiveGoal);
+  const suggestion = getNutritionSuggestion(nutritionLogs, effectiveGoal);
   const sorted = [...nutritionLogs].sort((a, b) => b.date.localeCompare(a.date));
   const today = todayISODate();
   const todayLog = sorted.find((n) => n.date === today);

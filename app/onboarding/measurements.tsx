@@ -7,11 +7,10 @@ import { Card } from '@/theme/Card';
 import { FormScrollView } from '@/components/FormScrollView';
 import { MeasurementField } from '@/components/MeasurementField';
 import { useOnboardingDraft } from '@/store/onboardingDraft';
-import { measurementFromDisplay, measurementUnitLabel } from '@/logic/units';
+import { displayLengthToCm } from '@/logic/units';
 import type { MeasurementKey } from '@/types';
 
 const FIELDS: { key: MeasurementKey; label: string }[] = [
-  { key: 'weightKg', label: 'Body Weight' },
   { key: 'neckCm', label: 'Neck' },
   { key: 'shouldersCm', label: 'Shoulders' },
   { key: 'chestCm', label: 'Chest / Bust' },
@@ -30,7 +29,7 @@ export default function Measurements() {
   const onChange = (key: MeasurementKey, text: string) => {
     setValues((v) => ({ ...v, [key]: text }));
     const n = parseFloat(text);
-    draft.setMeasurement(key, Number.isFinite(n) ? measurementFromDisplay(key, n, draft.weightUnit, draft.lengthUnit) : undefined);
+    draft.setMeasurement(key, Number.isFinite(n) ? displayLengthToCm(n, draft.lengthUnit) : undefined);
   };
 
   return (
@@ -46,7 +45,7 @@ export default function Measurements() {
             <MeasurementField
               key={f.key}
               label={f.label}
-              unit={measurementUnitLabel(f.key, draft.weightUnit, draft.lengthUnit)}
+              unit={draft.lengthUnit}
               value={values[f.key] ?? ''}
               onChangeText={(t) => onChange(f.key, t)}
             />

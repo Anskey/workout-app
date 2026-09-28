@@ -1,4 +1,4 @@
-import type { LengthUnit, MeasurementKey, WeightUnit } from '@/types';
+import type { LengthUnit, WeightUnit } from '@/types';
 
 const KG_PER_LB = 0.45359237;
 const CM_PER_IN = 2.54;
@@ -64,16 +64,3 @@ export function formatHeight(cm: number, unit: LengthUnit): string {
   return `${feet}′${inches}″`;
 }
 
-/** Stored measurement (kg or cm) → number shown in the user's units. */
-export function measurementToDisplay(key: MeasurementKey, value: number, weightUnit: WeightUnit, lengthUnit: LengthUnit): number {
-  return key === 'weightKg' ? kgToDisplayValue(value, weightUnit) : cmToDisplayLength(value, lengthUnit);
-}
-
-/** Number typed in the user's units → stored measurement (kg or cm). */
-export function measurementFromDisplay(key: MeasurementKey, value: number, weightUnit: WeightUnit, lengthUnit: LengthUnit): number {
-  return key === 'weightKg' ? displayValueToKg(value, weightUnit) : displayLengthToCm(value, lengthUnit);
-}
-
-export function measurementUnitLabel(key: MeasurementKey, weightUnit: WeightUnit, lengthUnit: LengthUnit): string {
-  return key === 'weightKg' ? weightUnit : lengthUnit;
-}
