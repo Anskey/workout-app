@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
   setHeaderLabel: { color: colors.textFaint, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, width: 74, textAlign: 'center' },
   setHeaderLabelNarrow: { color: colors.textFaint, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: 0.3, width: 50, textAlign: 'center' },
   setRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 6 },
-  setLabel: { color: colors.textSecondary, fontSize: 14 },
+  setLabel: { color: colors.textSecondary, fontSize: 14, textAlign: 'center' },
   rpeLabel: { color: colors.textSecondary, fontSize: 13, fontWeight: '600', width: 50, textAlign: 'center' },
   setInput: {
     width: 74,

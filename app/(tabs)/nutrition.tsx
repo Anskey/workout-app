@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,10 +7,12 @@ import { Button, ScreenTitle, SectionHeader } from '@/theme/ui';
 import { Card } from '@/theme/Card';
 import { StatTile } from '@/components/StatTile';
 import { SparkleIcon, ChevronRightIcon } from '@/components/Icons';
+import { LiftHistoryChart } from '@/components/LiftHistoryChart';
 import { useStore } from '@/store/useStore';
 import { compareToIdeal, getLatestMeasurement, getNutritionSuggestion, getSuggestedGoal } from '@/logic/recommendations';
 import { formatLongDate, todayISODate } from '@/logic/dates';
 import { formatWeight, kgToDisplayValue } from '@/logic/units';
+import type { HistoryPoint } from '@/logic/sessionHistory';
 
 export default function Nutrition() {
   const profile = useStore((s) => s.profile);
@@ -24,6 +26,16 @@ export default function Nutrition() {
   const sorted = [...nutritionLogs].sort((a, b) => b.date.localeCompare(a.date));
   const today = todayISODate();
   const todayLog = sorted.find((n) => n.date === today);
+
+  // Oldest-first, weight-only — the trend chart plots left-to-right by date.
+  const weightPoints = useMemo<HistoryPoint[]>(
+    () =>
+      [...nutritionLogs]
+        .filter((n) => n.weightKg != null)
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .map((n) => ({ date: n.date, topSet: { weightKg: n.weightKg } })),
+    [nutritionLogs]
+  );
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -72,6 +84,22 @@ export default function Nutrition() {
             <Text style={styles.targetText}>Protein target: ~{suggestion.proteinTargetG}g/day (≈1g per lb bodyweight)</Text>
           )}
         </Card>
+
+        {weightPoints.length > 0 && (
+          <>
+            <SectionHeader>Weight History</SectionHeader>
+            <Card style={{ marginBottom: 18 }}>
+              <LiftHistoryChart
+                points={weightPoints}
+                weightUnit={profile.weightUnit}
+                onPointPress={(p) => {
+                  const entry = nutritionLogs.find((n) => n.date === p.date);
+                  if (entry) router.push({ pathname: '/modals/nutrition-log', params: { entryId: entry.id } });
+                }}
+              />
+            </Card>
+          </>
+        )}
 
         <SectionHeader>History</SectionHeader>
         <Card>
