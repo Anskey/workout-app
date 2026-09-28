@@ -158,14 +158,6 @@ export default function EditProfile() {
             ))}
           </View>
 
-          <SectionHeader>Comparison Reference</SectionHeader>
-          <View style={[styles.pillRow, { flexWrap: 'wrap' }]}>
-            {IDEAL_PRESET_ORDER.map((p) => (
-              <Pill key={p} label={IDEAL_PRESETS[p].label} active={idealPreset === p} onPress={() => setIdealPreset(p)} />
-            ))}
-          </View>
-          <Text style={styles.presetDescription}>{IDEAL_PRESETS[idealPreset].description}</Text>
-
           <SectionHeader>Goal</SectionHeader>
           <View style={styles.pillRow}>
             <Pill label="Manual" active={goalMode === 'manual'} onPress={() => setGoalMode('manual')} />
@@ -178,10 +170,19 @@ export default function EditProfile() {
               ))}
             </View>
           ) : (
-            <Text style={styles.presetDescription}>
-              Based on your latest measurements vs. {IDEAL_PRESETS[idealPreset].label}, suggested goal: {GOAL_LABELS[suggestedGoal]}.
-              This updates automatically as your measurements and reference change.
-            </Text>
+            <>
+              <SectionHeader>Comparison Reference</SectionHeader>
+              <View style={[styles.pillRow, { flexWrap: 'wrap' }]}>
+                {IDEAL_PRESET_ORDER.map((p) => (
+                  <Pill key={p} label={IDEAL_PRESETS[p].label} active={idealPreset === p} onPress={() => setIdealPreset(p)} />
+                ))}
+              </View>
+              <Text style={styles.presetDescription}>{IDEAL_PRESETS[idealPreset].description}</Text>
+              <Text style={styles.presetDescription}>
+                Based on your latest measurements vs. {IDEAL_PRESETS[idealPreset].label}, suggested goal: {GOAL_LABELS[suggestedGoal]}.
+                This updates automatically as your measurements and reference change.
+              </Text>
+            </>
           )}
 
           <SectionHeader>Activity Level</SectionHeader>
