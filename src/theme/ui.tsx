@@ -1,10 +1,22 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
 import { colors } from './colors';
 
 export const serif = 'CormorantGaramond_600SemiBold';
 export const sansMedium = 'Inter_500Medium';
 export const sansSemiBold = 'Inter_600SemiBold';
+
+// A soft, tactile lift for filled buttons — subtle depth instead of a flat, web-style
+// fill, but without going as far as Material's ripple/ink-splash interaction.
+const buttonElevation = Platform.select({
+  ios: {
+    shadowColor: colors.textPrimary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 5,
+  },
+  android: { elevation: 3 },
+});
 
 export function ScreenTitle({ children, subtitle }: { children: React.ReactNode; subtitle?: string }) {
   return (
@@ -98,11 +110,12 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   goldButton: {
-    borderRadius: 4,
+    borderRadius: 10,
     paddingVertical: 15,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.gold,
+    ...buttonElevation,
   },
   goldButtonLabel: {
     fontFamily: sansSemiBold,
@@ -111,11 +124,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   navyButton: {
-    borderRadius: 4,
+    borderRadius: 10,
     paddingVertical: 15,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.navyDeep,
+    ...buttonElevation,
   },
   navyButtonLabel: {
     fontFamily: sansSemiBold,
@@ -124,7 +138,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   outlineButton: {
-    borderRadius: 4,
+    borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
@@ -146,7 +160,7 @@ const styles = StyleSheet.create({
   badge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 3,
+    borderRadius: 6,
     borderWidth: 1,
     marginRight: 6,
     marginBottom: 6,
@@ -159,7 +173,7 @@ const styles = StyleSheet.create({
   pill: {
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 4,
+    borderRadius: 10,
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.surfaceBorder,

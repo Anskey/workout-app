@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, ViewStyle } from 'react-native';
+import { Platform, StyleSheet, View, ViewStyle } from 'react-native';
 import { colors } from './colors';
 
 interface CardProps {
@@ -19,12 +19,21 @@ export function Card({ children, style, padded = true, variant = 'surface' }: Ca
 
 const styles = StyleSheet.create({
   wrap: {
-    borderRadius: 4,
+    borderRadius: 16,
   },
   surface: {
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.surfaceBorder,
+    // Material elevation instead of a hairline border — a flat bordered card is
+    // one of the clearest "this is a web page" tells on Android.
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.textPrimary,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+      },
+      android: { elevation: 2 },
+    }),
   },
   navy: {
     backgroundColor: colors.navySection,
