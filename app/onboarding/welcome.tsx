@@ -21,6 +21,12 @@ export default function Welcome() {
         </Text>
       </View>
       <Button label="Begin" onPress={() => router.push('/onboarding/profile')} style={styles.button} />
+      <Text
+        style={styles.signInLink}
+        onPress={() => router.push({ pathname: '/modals/account', params: { fromOnboarding: 'true' } })}
+      >
+        Already have an account? Sign in
+      </Text>
     </SafeAreaView>
   );
 }
@@ -49,4 +55,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   button: { marginBottom: 8 },
+  signInLink: {
+    textAlign: 'center',
+    color: colors.gold,
+    fontSize: 13.5,
+    fontWeight: '600',
+    marginTop: 14,
+  },
 });

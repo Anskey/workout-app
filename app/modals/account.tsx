@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TextInput, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { Button, SectionHeader } from '@/theme/ui';
@@ -9,12 +9,15 @@ import { FormScrollView } from '@/components/FormScrollView';
 import { ModalHeader } from '@/components/ModalHeader';
 import { useAuthStore } from '@/store/useAuthStore';
 import { isFirebaseConfigured } from '@/lib/firebase';
+import { waitForFirstCloudSync } from '@/logic/cloudSync';
 
 export default function Account() {
+  const { fromOnboarding } = useLocalSearchParams<{ fromOnboarding?: string }>();
   const { user, initializing, error, signIn, signUp, signOutUser, clearError } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const runAuth = async (action: 'signIn' | 'signUp') => {
@@ -31,6 +34,16 @@ export default function Account() {
     setBusy(true);
     try {
       await (action === 'signIn' ? signIn(email, password) : signUp(email, password));
+      if (fromOnboarding) {
+        // Skipping onboarding by signing in — wait for the real account data to
+        // actually arrive before deciding where to go, rather than acting on
+        // whatever this fresh install's local (onboarding-incomplete) state says.
+        setBusy(false);
+        setSyncing(true);
+        await waitForFirstCloudSync();
+        router.replace('/');
+        return;
+      }
       router.back();
     } catch {
       // useAuthStore already recorded a friendly error message.
@@ -44,7 +57,12 @@ export default function Account() {
       <FormScrollView contentContainerStyle={styles.scroll}>
         <ModalHeader title="Account" />
 
-        {!isFirebaseConfigured ? (
+        {syncing ? (
+          <Card style={styles.centerCard}>
+            <ActivityIndicator color={colors.navyDeep} />
+            <Text style={[styles.hintText, { marginTop: 12, textAlign: 'center' }]}>Syncing your account…</Text>
+          </Card>
+        ) : !isFirebaseConfigured ? (
           <Card>
             <Text style={styles.bodyText}>
               Cloud sync isn’t set up yet — this build has no Firebase project configured, so everything stays local to this
