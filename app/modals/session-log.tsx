@@ -32,12 +32,13 @@ function rpeForSet(prescription: WeekPrescription | Exercise, index: number, tot
 /** Set rows for an exercise. When this slot was already logged on the selected date,
  * show exactly what was logged (every field, however many sets there really were) —
  * not a re-derived guess. Otherwise, blank rows sized to the current prescription, with
- * weight pre-filled from the last time this slot was logged (whatever exercise it was). */
+ * only the first set's weight pre-filled from last time (whatever exercise it was) —
+ * later sets are left blank rather than assuming every set stays at that same weight. */
 function initialSets(exercise: Exercise, week: number, sessionLogs: WorkoutSessionLog[], dayId: string, fromToday?: SetLog[]): SetLog[] {
   if (fromToday) return fromToday.map((s) => ({ ...s }));
   const count = parseSetCount(currentPrescription(exercise, week).workingSets);
-  const lastSets = getLastSlotLog(sessionLogs, dayId, exercise.id)?.sets;
-  return Array.from({ length: count }, (_, i) => (lastSets?.[i] ? { weightKg: lastSets[i].weightKg } : {}));
+  const lastFirstWeight = getLastSlotLog(sessionLogs, dayId, exercise.id)?.sets[0]?.weightKg;
+  return Array.from({ length: count }, (_, i) => (i === 0 && lastFirstWeight != null ? { weightKg: lastFirstWeight } : {}));
 }
 
 export default function SessionLog() {
