@@ -27,12 +27,14 @@ export default function Nutrition() {
   const today = todayISODate();
   const todayLog = sorted.find((n) => n.date === today);
 
-  // Oldest-first, weight-only — the trend chart plots left-to-right by date.
+  // Oldest-first, weight-only, most recent 30 — the trend chart plots left-to-right
+  // by date, and months of daily entries in one small chart just reads as noise.
   const weightPoints = useMemo<HistoryPoint[]>(
     () =>
       [...nutritionLogs]
         .filter((n) => n.weightKg != null)
         .sort((a, b) => a.date.localeCompare(b.date))
+        .slice(-30)
         .map((n) => ({ date: n.date, topSet: { weightKg: n.weightKg } })),
     [nutritionLogs]
   );
@@ -87,7 +89,7 @@ export default function Nutrition() {
 
         {weightPoints.length > 0 && (
           <>
-            <SectionHeader>Weight History</SectionHeader>
+            <SectionHeader>Weight History (Last 30 Entries)</SectionHeader>
             <Card style={{ marginBottom: 18 }}>
               <LiftHistoryChart
                 points={weightPoints}
