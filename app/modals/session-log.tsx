@@ -110,11 +110,12 @@ export default function SessionLog() {
   const loggedNameFor = (exerciseId: string): string | undefined =>
     existingLog?.exerciseLogs.find((e) => e.exerciseId === exerciseId)?.exerciseName;
 
-  // What to call this slot: exactly what was logged on the selected date if anything, else
-  // whatever was last actually done here (a real substitution can be a long-running habit,
-  // not a one-off), else finally the program's own default name for the slot.
-  const effectiveName = (exercise: Exercise): string =>
-    loggedNameFor(exercise.id) ?? getLastSlotLog(sessionLogs, dayId, exercise.id)?.exerciseName ?? exercise.name;
+  // What to call this slot: exactly what was logged on the selected date if anything,
+  // else the program's own default name — a slot's own history can be a genuine mix of
+  // the default and occasional substitutions, so the last-used name isn't a reliable
+  // stand-in for "what this exercise really is." The "(as X)" note below the target
+  // still surfaces the last substitution without letting it silently become the default.
+  const effectiveName = (exercise: Exercise): string => loggedNameFor(exercise.id) ?? exercise.name;
 
   const onSave = () => {
     if (!program || !day || !programId || !dayId) return;

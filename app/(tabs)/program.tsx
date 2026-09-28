@@ -8,7 +8,7 @@ import { Card } from '@/theme/Card';
 import { ChevronRightIcon, PlusIcon } from '@/components/Icons';
 import { useActiveProgram, useStore } from '@/store/useStore';
 import { getMuscleColor } from '@/data/muscleGroups';
-import { formatSet, getLastSlotLog, getLastSlotTopSet } from '@/logic/sessionHistory';
+import { formatSet, getLastSlotTopSet } from '@/logic/sessionHistory';
 import { DEFAULT_PROGRAM_ID } from '@/data/seedProgram';
 import type { Exercise, WeekPrescription, WorkoutDay, WorkoutSessionLog } from '@/types';
 
@@ -198,7 +198,6 @@ function DayCard({
               programId={programId}
               dayId={day.id}
               currentWeek={currentWeek}
-              displayName={getLastSlotLog(sessionLogs, day.id, exercise.id)?.exerciseName ?? exercise.name}
               lastSetsText={formatSet(getLastSlotTopSet(sessionLogs, day.id, exercise.id), weightUnit)}
             />
           ))}
@@ -220,14 +219,12 @@ function ExerciseRow({
   programId,
   dayId,
   currentWeek,
-  displayName,
   lastSetsText,
 }: {
   exercise: Exercise;
   programId: string;
   dayId: string;
   currentWeek: number;
-  displayName: string;
   lastSetsText: string;
 }) {
   const prescription = currentPrescription(exercise, currentWeek);
@@ -247,7 +244,7 @@ function ExerciseRow({
         style={{ flex: 1 }}
         onPress={() => router.push({ pathname: '/modals/exercise-editor', params: { programId, dayId, exerciseId: exercise.id } })}
       >
-        <Text style={styles.exerciseName}>{displayName}</Text>
+        <Text style={styles.exerciseName}>{exercise.name}</Text>
         <Text style={styles.exerciseMeta}>
           {prescription.workingSets} sets × {prescription.reps} reps
           {prescription.rest ? ` · rest ${prescription.rest}` : ''}
