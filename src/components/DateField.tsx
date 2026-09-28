@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { colors } from '@/theme/colors';
-import { formatLongDate } from '@/logic/dates';
+import { formatLongDate, parseLocalISODate } from '@/logic/dates';
 
 interface Props {
   dateISO: string;
@@ -20,11 +20,6 @@ function localDateToISO(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-function isoToLocalDate(iso: string): Date {
-  const [y, m, d] = iso.split('-').map(Number);
-  return new Date(y, (m || 1) - 1, d || 1);
-}
-
 /** A date picker for backdating an entry — defaults to today but lets the user pick
  * any past date (e.g. logging a measurement or workout they forgot to enter same-day). */
 export function DateField({ dateISO, onChange, label = 'Date' }: Props) {
@@ -33,7 +28,7 @@ export function DateField({ dateISO, onChange, label = 'Date' }: Props) {
   const openPicker = () => {
     if (Platform.OS === 'android') {
       DateTimePickerAndroid.open({
-        value: isoToLocalDate(dateISO),
+        value: parseLocalISODate(dateISO),
         mode: 'date',
         maximumDate: new Date(),
         onValueChange: (_event, selected) => {
@@ -66,7 +61,7 @@ export function DateField({ dateISO, onChange, label = 'Date' }: Props) {
       )}
       {Platform.OS === 'ios' && showIOSPicker && (
         <DateTimePicker
-          value={isoToLocalDate(dateISO)}
+          value={parseLocalISODate(dateISO)}
           mode="date"
           display="inline"
           maximumDate={new Date()}
