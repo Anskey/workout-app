@@ -30,7 +30,38 @@
       "expo-splash-screen",
       "@react-native-community/datetimepicker",
       "expo-sharing",
-      ["expo-share-intent", { "androidIntentFilters": ["text/*"] }]
-    ]
+      [
+        "expo-share-intent",
+        {
+          "androidIntentFilters": [
+            "text/*"
+          ]
+        }
+      ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "build": {
+          "experimental": {
+            "ios": {
+              "appExtensions": [
+                {
+                  "targetName": "ShareExtension",
+                  "bundleIdentifier": "undefined.share-extension",
+                  "entitlements": {
+                    "com.apple.security.application-groups": [
+                      "group.undefined"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "projectId": "a1007551-8536-453c-bebd-e1d8a8b40f87"
+      }
+    },
+    "owner": "anskey"
   }
 }
