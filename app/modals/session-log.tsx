@@ -12,7 +12,7 @@ import { getMuscleColor } from '@/data/muscleGroups';
 import { LiftHistoryChart } from '@/components/LiftHistoryChart';
 import { getFormCues } from '@/data/formCues';
 import { DateField } from '@/components/DateField';
-import { formatSet, getLastSlotLog, getLastSlotTopSet, getSlotExerciseHistory, parseSetCount } from '@/logic/sessionHistory';
+import { formatSet, getEffectiveWeekForDay, getLastSlotLog, getLastSlotTopSet, getSlotExerciseHistory, parseSetCount } from '@/logic/sessionHistory';
 import { todayISODate } from '@/logic/dates';
 import { displayValueToKg, kgToDisplayValue } from '@/logic/units';
 import type { Exercise, SetLog, WeekPrescription, WorkoutSessionLog } from '@/types';
@@ -49,25 +49,28 @@ export default function SessionLog() {
 
   const program = programs.find((p) => p.id === programId);
   const day = program?.days.find((d) => d.id === dayId);
-  const week = program?.currentWeek ?? 1;
 
   // Builds every exercise's set rows for a given date — whatever was already logged
   // that day, if anything. Used both for the initial load and whenever the user picks
   // a different date, so switching dates is a plain event-driven update rather than an
-  // effect syncing state after the fact.
+  // effect syncing state after the fact. The week used is whichever this exact day was
+  // actually due for as of that date (see getEffectiveWeekForDay), not a shared pointer.
   const buildSetsForDate = (targetDate: string): Record<string, SetLog[]> => {
     const init: Record<string, SetLog[]> = {};
     if (!day) return init;
+    const weekForDate = getEffectiveWeekForDay(day, sessionLogs, programId, targetDate);
     const logForDate = sessionLogs.find((l) => l.programId === programId && l.dayId === dayId && l.date === targetDate);
     day.exercises.forEach((exercise) => {
       const loggedEntry = logForDate?.exerciseLogs.find((e) => e.exerciseId === exercise.id);
-      init[exercise.id] = initialSets(exercise, week, sessionLogs, dayId, loggedEntry?.sets);
+      init[exercise.id] = initialSets(exercise, weekForDate, sessionLogs, dayId, loggedEntry?.sets);
     });
     return init;
   };
 
   const [date, setDate] = useState(dateParam ?? todayISODate());
   const [setsByExercise, setSetsByExercise] = useState<Record<string, SetLog[]>>(() => buildSetsForDate(dateParam ?? todayISODate()));
+
+  const week = getEffectiveWeekForDay(day, sessionLogs, programId, date);
 
   const existingLog = sessionLogs.find((l) => l.programId === programId && l.dayId === dayId && l.date === date);
 

@@ -1,6 +1,29 @@
 import type { SetLog, WeightUnit, WorkoutDay, WorkoutProgram, WorkoutSessionLog } from '@/types';
 import { kgToDisplayValue } from './units';
 
+/** Which week's prescription (sets/reps/RPE) is due for this exact day, based purely on how
+ * many times that day has already been logged before the date in question — a day's own
+ * progression table is indexed by its own occurrence count, not a shared calendar-week
+ * pointer, so "Pull #2" and "Push #2" each advance only when THEY are actually done. Wraps
+ * back to week 1 once every prescribed week has been used once, so a repeated mesocycle
+ * (as in a real, ongoing training log) keeps making sense instead of freezing on the final
+ * week's numbers forever. */
+export function getEffectiveWeekForDay(
+  day: WorkoutDay | undefined,
+  sessionLogs: WorkoutSessionLog[],
+  programId: string | undefined,
+  beforeDate?: string
+): number {
+  if (!day) return 1;
+  let maxWeek = 0;
+  day.exercises.forEach((e) => e.weeklyProgression?.forEach((w) => { if (w.week > maxWeek) maxWeek = w.week; }));
+  if (maxWeek === 0) return 1;
+  const count = sessionLogs.filter(
+    (l) => l.programId === programId && l.dayId === day.id && (!beforeDate || l.date < beforeDate)
+  ).length;
+  return (count % maxWeek) + 1;
+}
+
 /** The next day due in the program's rotation, based on whatever day was most recently
  * logged — so the app can pick up where you left off instead of always starting back at
  * day one. Falls back to the first day if nothing's been logged yet for this program, or
