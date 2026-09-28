@@ -1,5 +1,16 @@
+/** The local calendar date, as "YYYY-MM-DD". `new Date().toISOString()` would give
+ * the UTC date instead — in any timezone behind UTC (all of North America), that's
+ * already tomorrow for several hours every evening, which silently saved new entries
+ * (weight, nutrition, workouts) logged at night under the wrong day. */
+function localISODate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 export function todayISODate(): string {
-  return new Date().toISOString().slice(0, 10);
+  return localISODate(new Date());
 }
 
 /** Parses a plain "YYYY-MM-DD" string as a LOCAL calendar date. `new Date(dateISO)`
@@ -38,7 +49,7 @@ export function lastNDates(n: number): string[] {
   for (let i = n - 1; i >= 0; i -= 1) {
     const d = new Date(now);
     d.setDate(now.getDate() - i);
-    out.push(d.toISOString().slice(0, 10));
+    out.push(localISODate(d));
   }
   return out;
 }
