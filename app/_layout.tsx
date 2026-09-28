@@ -2,13 +2,15 @@ import React, { useEffect } from 'react';
 import { Text, TextInput } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { DefaultTheme, router, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
+import { useShareIntent } from 'expo-share-intent';
 import { useFonts, CormorantGaramond_600SemiBold, CormorantGaramond_700Bold } from '@expo-google-fonts/cormorant-garamond';
 import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import { Background } from '@/theme/Background';
 import { initCloudSync } from '@/logic/cloudSync';
+import { parseSharedNutritionText } from '@/logic/parseSharedNutrition';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 initCloudSync();
@@ -46,6 +48,26 @@ export default function RootLayout() {
       SplashScreen.hideAsync().catch(() => {});
     }
   }, [fontsLoaded]);
+
+  // A share from another app (e.g. a daily nutrition summary from Gemini) lands here
+  // as plain text — pull out whatever numbers we can and open the log pre-filled,
+  // rather than silently swallowing the share or requiring manual re-entry.
+  const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntent();
+  useEffect(() => {
+    if (!hasShareIntent || !shareIntent?.text) return;
+    const parsed = parseSharedNutritionText(shareIntent.text);
+    resetShareIntent();
+    router.push({
+      pathname: '/modals/nutrition-log',
+      params: {
+        prefillCalories: parsed.calories != null ? String(parsed.calories) : undefined,
+        prefillProteinG: parsed.proteinG != null ? String(parsed.proteinG) : undefined,
+        prefillWeightKg: parsed.weightKg != null ? String(parsed.weightKg) : undefined,
+        prefillSteps: parsed.steps != null ? String(parsed.steps) : undefined,
+      },
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasShareIntent, shareIntent]);
 
   if (!fontsLoaded) return null;
 

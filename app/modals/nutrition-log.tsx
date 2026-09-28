@@ -13,7 +13,13 @@ import { todayISODate } from '@/logic/dates';
 import { displayValueToKg, kgToDisplayValue } from '@/logic/units';
 
 export default function NutritionLog() {
-  const { entryId } = useLocalSearchParams<{ entryId?: string }>();
+  const { entryId, prefillCalories, prefillProteinG, prefillWeightKg, prefillSteps } = useLocalSearchParams<{
+    entryId?: string;
+    prefillCalories?: string;
+    prefillProteinG?: string;
+    prefillWeightKg?: string;
+    prefillSteps?: string;
+  }>();
   const nutritionLogs = useStore((s) => s.nutritionLogs);
   const upsertNutritionLog = useStore((s) => s.upsertNutritionLog);
   const deleteNutritionLog = useStore((s) => s.deleteNutritionLog);
@@ -22,10 +28,22 @@ export default function NutritionLog() {
   const existing = useMemo(() => nutritionLogs.find((n) => n.id === entryId), [nutritionLogs, entryId]);
   const [date, setDate] = useState(existing?.date ?? todayISODate());
 
-  const [calories, setCalories] = useState(existing?.calories ? String(existing.calories) : '');
-  const [proteinG, setProteinG] = useState(existing?.proteinG ? String(existing.proteinG) : '');
-  const [weight, setWeight] = useState(existing?.weightKg ? String(kgToDisplayValue(existing.weightKg, weightUnit)) : '');
-  const [steps, setSteps] = useState(existing?.steps ? String(existing.steps) : '');
+  // A shared-text prefill only applies to a brand-new entry, never when editing one
+  // that's already logged.
+  const [calories, setCalories] = useState(
+    existing?.calories ? String(existing.calories) : prefillCalories ?? ''
+  );
+  const [proteinG, setProteinG] = useState(
+    existing?.proteinG ? String(existing.proteinG) : prefillProteinG ?? ''
+  );
+  const [weight, setWeight] = useState(
+    existing?.weightKg
+      ? String(kgToDisplayValue(existing.weightKg, weightUnit))
+      : prefillWeightKg
+      ? String(kgToDisplayValue(parseFloat(prefillWeightKg), weightUnit))
+      : ''
+  );
+  const [steps, setSteps] = useState(existing?.steps ? String(existing.steps) : prefillSteps ?? '');
 
   const onSave = () => {
     const cal = parseFloat(calories);
