@@ -12,7 +12,15 @@ import { getMuscleColor } from '@/data/muscleGroups';
 import { LiftHistoryChart } from '@/components/LiftHistoryChart';
 import { getFormCues } from '@/data/formCues';
 import { DateField } from '@/components/DateField';
-import { formatSet, getEffectiveWeekForDay, getLastSlotLog, getLastSlotTopSet, getSlotExerciseHistory, parseSetCount } from '@/logic/sessionHistory';
+import {
+  formatSet,
+  getEffectiveWeekForDay,
+  getLastSlotLog,
+  getLastSlotLogForName,
+  getLastSlotTopSet,
+  getSlotExerciseHistory,
+  parseSetCount,
+} from '@/logic/sessionHistory';
 import { todayISODate } from '@/logic/dates';
 import { displayValueToKg, kgToDisplayValue } from '@/logic/units';
 import type { Exercise, SetLog, WeekPrescription, WorkoutSessionLog } from '@/types';
@@ -32,12 +40,21 @@ function rpeForSet(prescription: WeekPrescription | Exercise, index: number, tot
 /** Set rows for an exercise. When this slot was already logged on the selected date,
  * show exactly what was logged (every field, however many sets there really were) —
  * not a re-derived guess. Otherwise, blank rows sized to the current prescription, with
- * only the first set's weight pre-filled from last time (whatever exercise it was) —
- * later sets are left blank rather than assuming every set stays at that same weight. */
-function initialSets(exercise: Exercise, week: number, sessionLogs: WorkoutSessionLog[], dayId: string, fromToday?: SetLog[]): SetLog[] {
+ * only the first set's weight pre-filled from last time THIS EXACT exercise (by name) was
+ * done here — a substitution can load very differently, so the weight only carries over
+ * when it's really the same movement. Later sets are left blank either way, rather than
+ * assuming every set stays at that same weight. */
+function initialSets(
+  exercise: Exercise,
+  week: number,
+  sessionLogs: WorkoutSessionLog[],
+  dayId: string,
+  name: string,
+  fromToday?: SetLog[]
+): SetLog[] {
   if (fromToday) return fromToday.map((s) => ({ ...s }));
   const count = parseSetCount(currentPrescription(exercise, week).workingSets);
-  const lastFirstWeight = getLastSlotLog(sessionLogs, dayId, exercise.id)?.sets[0]?.weightKg;
+  const lastFirstWeight = getLastSlotLogForName(sessionLogs, dayId, exercise.id, name)?.sets[0]?.weightKg;
   return Array.from({ length: count }, (_, i) => (i === 0 && lastFirstWeight != null ? { weightKg: lastFirstWeight } : {}));
 }
 
@@ -63,7 +80,8 @@ export default function SessionLog() {
     const logForDate = sessionLogs.find((l) => l.programId === programId && l.dayId === dayId && l.date === targetDate);
     day.exercises.forEach((exercise) => {
       const loggedEntry = logForDate?.exerciseLogs.find((e) => e.exerciseId === exercise.id);
-      init[exercise.id] = initialSets(exercise, weekForDate, sessionLogs, dayId, loggedEntry?.sets);
+      const name = loggedEntry?.exerciseName ?? exercise.name;
+      init[exercise.id] = initialSets(exercise, weekForDate, sessionLogs, dayId, name, loggedEntry?.sets);
     });
     return init;
   };
@@ -89,7 +107,7 @@ export default function SessionLog() {
     if (changed.length === 0) return;
     setSetsByExercise((prev) => {
       const next = { ...prev };
-      changed.forEach((e) => { next[e.id] = initialSets(e, week, sessionLogs, dayId); });
+      changed.forEach((e) => { next[e.id] = initialSets(e, week, sessionLogs, dayId, e.name); });
       return next;
     });
   }, [day, week, sessionLogs]);

@@ -125,6 +125,20 @@ export function getLastSlotLog(sessionLogs: WorkoutSessionLog[], dayId: string, 
   return history[history.length - 1];
 }
 
+/** The most recently logged entry for this slot under this exact exercise name — used for
+ * pre-filling weight, since a substitution can load very differently than the default (or
+ * than a different substitution), so "last logged for this slot at all" isn't a safe stand-in
+ * for "last time I did this specific exercise." */
+export function getLastSlotLogForName(
+  sessionLogs: WorkoutSessionLog[],
+  dayId: string,
+  exerciseId: string,
+  name: string
+): SlotHistoryEntry | undefined {
+  const history = getSlotHistory(sessionLogs, dayId, exerciseId).filter((e) => e.exerciseName === name);
+  return history[history.length - 1];
+}
+
 /** The heaviest set (ties broken by reps) from the last time this slot was logged. */
 export function getLastSlotTopSet(sessionLogs: WorkoutSessionLog[], dayId: string, exerciseId: string): SetLog | undefined {
   const last = getLastSlotLog(sessionLogs, dayId, exerciseId);
