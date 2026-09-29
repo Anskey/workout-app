@@ -28,23 +28,33 @@ const WIDTH = 280;
 const HEIGHT = 90;
 const PAD_X = 8;
 const PAD_Y = 12;
+// Points are spread evenly across a fixed-width SVG, so a long history (e.g. frequent
+// logging over a wide window) needs thinning or the dots pile on top of each other.
+const MAX_POINTS = 30;
+
+function downsample<T>(items: T[], max: number): T[] {
+  if (items.length <= max) return items;
+  const step = (items.length - 1) / (max - 1);
+  return Array.from({ length: max }, (_, i) => items[Math.round(i * step)]);
+}
 
 /** A small trend line for a plain numeric value over time (a body measurement, a
  * target, anything that isn't an exercise's logged set) — same look and tap-to-select
  * interaction as LiftHistoryChart, but unit-agnostic and with an optional goal line. */
-export function TrendChart({ points, unit, goalValue, higherIsBetter = true, onPointPress }: Props) {
+export function TrendChart({ points: allPoints, unit, goalValue, higherIsBetter = true, onPointPress }: Props) {
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
 
-  if (points.length < 2) {
+  if (allPoints.length < 2) {
     return (
       <View style={styles.emptyBox}>
         <Text style={styles.emptyText}>
-          {points.length === 0 ? 'Log this a couple of times to see your progress trend.' : 'One more entry and your trend line shows up here.'}
+          {allPoints.length === 0 ? 'Log this a couple of times to see your progress trend.' : 'One more entry and your trend line shows up here.'}
         </Text>
       </View>
     );
   }
 
+  const points = downsample(allPoints, MAX_POINTS);
   const values = points.map((p) => p.value).concat(goalValue != null ? [goalValue] : []);
   const min = Math.min(...values);
   const max = Math.max(...values);

@@ -277,6 +277,7 @@ const styles = StyleSheet.create({
   setInput: {
     width: 74,
     textAlign: 'center',
+    textAlignVertical: 'center',
     color: colors.textPrimary,
     fontSize: 15,
     backgroundColor: colors.surface,
@@ -288,6 +289,7 @@ const styles = StyleSheet.create({
   setInputNarrow: {
     width: 50,
     textAlign: 'center',
+    textAlignVertical: 'center',
     color: colors.textPrimary,
     fontSize: 15,
     backgroundColor: colors.surface,

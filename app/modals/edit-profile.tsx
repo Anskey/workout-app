@@ -227,7 +227,7 @@ export default function EditProfile() {
         {importing ? (
           <ActivityIndicator color={colors.navyDeep} style={{ marginTop: 10 }} />
         ) : (
-          <Button label="Import Data" variant="ghost" onPress={onImport} style={{ marginTop: 10 }} />
+          <Button label="Import Data" variant="outline" onPress={onImport} style={{ marginTop: 10 }} />
         )}
 
         <Text style={[styles.backupHint, { marginTop: 14 }]}>
@@ -246,7 +246,7 @@ export default function EditProfile() {
         {importingUrl ? (
           <ActivityIndicator color={colors.navyDeep} style={{ marginTop: 10 }} />
         ) : (
-          <Button label="Import From Link" variant="ghost" onPress={onImportUrl} style={{ marginTop: 4 }} />
+          <Button label="Import From Link" variant="outline" onPress={onImportUrl} style={{ marginTop: 4 }} />
         )}
       </FormScrollView>
     </SafeAreaView>
