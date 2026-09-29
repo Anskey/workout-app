@@ -19,6 +19,12 @@ export interface UserProfile {
   weightUnit: WeightUnit;
   lengthUnit: LengthUnit;
   idealPreset: IdealPreset;
+  /** Daily targets you set yourself (e.g. from a source like Gemini) — separate from
+   * the auto-suggested protein target, which stays a rough heuristic based on
+   * bodyweight rather than something you directly control. */
+  calorieTarget?: number;
+  proteinTargetG?: number;
+  stepsTarget?: number;
 }
 
 export type MuscleGroup =

@@ -11,7 +11,7 @@ import { TrendChart } from '@/components/TrendChart';
 import { useStore } from '@/store/useStore';
 import { getIdealMeasurements, GROW_TOWARD_IDEAL, MEASUREMENT_LABELS } from '@/data/idealRatios';
 import { cmToDisplayLength } from '@/logic/units';
-import { parseLocalISODate } from '@/logic/dates';
+import { DATE_WINDOWS, filterByWindow, type DateWindow } from '@/logic/dateWindows';
 import type { MeasurementKey } from '@/types';
 
 const KEYS: MeasurementKey[] = [
@@ -26,33 +26,13 @@ const KEYS: MeasurementKey[] = [
   'calfCm',
 ];
 
-type Window = '3m' | '6m' | '1y' | 'all';
-const WINDOWS: { key: Window; label: string; days: number | null }[] = [
-  { key: '3m', label: '3M', days: 90 },
-  { key: '6m', label: '6M', days: 182 },
-  { key: '1y', label: '1Y', days: 365 },
-  { key: 'all', label: 'All', days: null },
-];
-
 export default function Trends() {
   const profile = useStore((s) => s.profile);
   const measurements = useStore((s) => s.measurements);
-  const [window, setWindowKey] = useState<Window>('6m');
+  const [window, setWindowKey] = useState<DateWindow>('6m');
 
   const sorted = useMemo(() => [...measurements].sort((a, b) => a.date.localeCompare(b.date)), [measurements]);
-
-  const cutoff = useMemo(() => {
-    const days = WINDOWS.find((w) => w.key === window)?.days;
-    if (days == null) return null;
-    const d = new Date();
-    d.setDate(d.getDate() - days);
-    return d;
-  }, [window]);
-
-  const windowed = useMemo(
-    () => (cutoff ? sorted.filter((m) => parseLocalISODate(m.date) >= cutoff) : sorted),
-    [sorted, cutoff]
-  );
+  const windowed = useMemo(() => filterByWindow(sorted, window), [sorted, window]);
 
   const ideal = getIdealMeasurements(profile.heightCm, profile.sex, profile.idealPreset);
 
@@ -64,7 +44,7 @@ export default function Trends() {
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 18 }}>
           <View style={styles.pillRow}>
-            {WINDOWS.map((w) => (
+            {DATE_WINDOWS.map((w) => (
               <Pill key={w.key} label={w.label} active={window === w.key} onPress={() => setWindowKey(w.key)} />
             ))}
           </View>

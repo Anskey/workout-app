@@ -6,16 +6,34 @@ import { colors } from '@/theme/colors';
 import { Button, ScreenTitle, SectionHeader } from '@/theme/ui';
 import { Card } from '@/theme/Card';
 import { ComparisonBar } from '@/components/ComparisonBar';
-import { ChevronRightIcon } from '@/components/Icons';
 import { useStore } from '@/store/useStore';
 import { compareToIdeal, getLatestMeasurement } from '@/logic/recommendations';
-import { formatLongDate } from '@/logic/dates';
+import { formatLongDate, formatShortDate } from '@/logic/dates';
 import { formatLength } from '@/logic/units';
 import { IDEAL_PRESETS, MEASUREMENT_LABELS, getIdealMeasurements } from '@/data/idealRatios';
 import { BodyComparisonFigure } from '@/components/BodyComparisonFigure';
 import type { MeasurementKey } from '@/types';
 
 const HISTORY_KEYS = Object.keys(MEASUREMENT_LABELS) as MeasurementKey[];
+
+// Short header labels for the history grid's columns — the full names from
+// MEASUREMENT_LABELS are used elsewhere (comparisons, the entry form) where there's
+// room; here they'd force each column much wider than the values need.
+const COLUMN_LABELS: Record<MeasurementKey, string> = {
+  neckCm: 'Neck',
+  shouldersCm: 'Shldrs',
+  chestCm: 'Chest',
+  waistCm: 'Waist',
+  hipsCm: 'Hips',
+  bicepCm: 'Bicep',
+  forearmCm: 'Frm',
+  thighCm: 'Thigh',
+  calfCm: 'Calf',
+};
+
+const ROW_HEIGHT = 44;
+const DATE_COL_WIDTH = 76;
+const DATA_COL_WIDTH = 64;
 
 export default function Measurements() {
   const profile = useStore((s) => s.profile);
@@ -72,31 +90,58 @@ export default function Measurements() {
         >
           History
         </SectionHeader>
-        <Card>
+        <Card padded={false}>
           {sorted.length === 0 ? (
-            <Text style={styles.emptyText}>No entries yet.</Text>
+            <Text style={[styles.emptyText, { padding: 18 }]}>No entries yet.</Text>
           ) : (
-            sorted.map((m, i) => (
-              <Pressable
-                key={m.id}
-                onPress={() => router.push({ pathname: '/modals/measurement-log', params: { entryId: m.id } })}
-                style={[styles.row, i !== sorted.length - 1 && styles.rowBorder]}
-              >
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.rowDate}>{formatLongDate(m.date)}</Text>
-                  <View style={styles.rowMetaGrid}>
-                    {HISTORY_KEYS.filter((key) => m[key] != null).map((key) => (
-                      <Text key={key} style={styles.rowMetaCell}>
-                        {MEASUREMENT_LABELS[key]} <Text style={styles.rowMetaValue}>{formatLength(m[key] as number, profile.lengthUnit)}</Text>
-                      </Text>
-                    ))}
-                    {HISTORY_KEYS.every((key) => m[key] == null) && <Text style={styles.rowMeta}>—</Text>}
-                  </View>
+            <View style={{ flexDirection: 'row' }}>
+              {/* Frozen date column — stays put while the measurement columns scroll. */}
+              <View style={{ width: DATE_COL_WIDTH }}>
+                <View style={[styles.gridCell, styles.gridHeaderCell, { width: DATE_COL_WIDTH, alignItems: 'flex-start' }]}>
+                  <Text style={styles.gridHeaderText}>Date</Text>
                 </View>
-                <Text style={styles.editHint}>Edit</Text>
-                <ChevronRightIcon color={colors.textFaint} />
-              </Pressable>
-            ))
+                {sorted.map((m, i) => (
+                  <Pressable
+                    key={m.id}
+                    onPress={() => router.push({ pathname: '/modals/measurement-log', params: { entryId: m.id } })}
+                    style={[
+                      styles.gridCell,
+                      { width: DATE_COL_WIDTH, alignItems: 'flex-start' },
+                      i !== sorted.length - 1 && styles.rowBorder,
+                    ]}
+                  >
+                    <Text style={styles.gridDateText}>{formatShortDate(m.date)}</Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View>
+                  <View style={{ flexDirection: 'row' }}>
+                    {HISTORY_KEYS.map((key) => (
+                      <View key={key} style={[styles.gridCell, styles.gridHeaderCell, { width: DATA_COL_WIDTH }]}>
+                        <Text style={styles.gridHeaderText}>{COLUMN_LABELS[key]}</Text>
+                      </View>
+                    ))}
+                  </View>
+                  {sorted.map((m, i) => (
+                    <View key={m.id} style={{ flexDirection: 'row' }}>
+                      {HISTORY_KEYS.map((key) => (
+                        <Pressable
+                          key={key}
+                          onPress={() => router.push({ pathname: '/modals/measurement-log', params: { entryId: m.id } })}
+                          style={[styles.gridCell, { width: DATA_COL_WIDTH }, i !== sorted.length - 1 && styles.rowBorder]}
+                        >
+                          <Text style={styles.gridValueText}>
+                            {m[key] != null ? formatLength(m[key] as number, profile.lengthUnit) : '—'}
+                          </Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  ))}
+                </View>
+              </ScrollView>
+            </View>
           )}
         </Card>
       </ScrollView>
@@ -111,12 +156,10 @@ const styles = StyleSheet.create({
   editProfileLink: { color: colors.gold, fontSize: 12.5, fontWeight: '600', marginTop: 6 },
   dateLabel: { color: colors.textFaint, fontSize: 12, marginBottom: 14, textTransform: 'uppercase', letterSpacing: 0.6 },
   emptyText: { color: colors.textSecondary, fontSize: 14 },
-  row: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 12 },
   rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.divider },
-  rowDate: { color: colors.textPrimary, fontSize: 14.5, fontWeight: '600' },
-  rowMeta: { color: colors.textSecondary, fontSize: 12.5, marginTop: 3 },
-  rowMetaGrid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 5 },
-  rowMetaCell: { width: '50%', color: colors.textFaint, fontSize: 12, marginBottom: 4 },
-  rowMetaValue: { color: colors.textSecondary, fontWeight: '600' },
-  editHint: { color: colors.gold, fontSize: 12, fontWeight: '600', marginRight: 4 },
+  gridCell: { height: ROW_HEIGHT, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 8 },
+  gridHeaderCell: { backgroundColor: colors.bgAlt },
+  gridHeaderText: { color: colors.textFaint, fontSize: 10.5, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.3 },
+  gridDateText: { color: colors.textPrimary, fontSize: 12.5, fontWeight: '600' },
+  gridValueText: { color: colors.textSecondary, fontSize: 12.5 },
 });

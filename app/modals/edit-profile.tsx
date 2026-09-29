@@ -7,6 +7,7 @@ import { Button, Pill, SectionHeader } from '@/theme/ui';
 import { Card } from '@/theme/Card';
 import { FormScrollView } from '@/components/FormScrollView';
 import { HeightInput } from '@/components/HeightInput';
+import { MeasurementField } from '@/components/MeasurementField';
 import { ModalHeader } from '@/components/ModalHeader';
 import { useStore } from '@/store/useStore';
 import { IDEAL_PRESETS, IDEAL_PRESET_ORDER } from '@/data/idealRatios';
@@ -43,6 +44,9 @@ export default function EditProfile() {
   const [weightUnit, setWeightUnit] = useState<WeightUnit>(profile.weightUnit);
   const [lengthUnit, setLengthUnit] = useState<LengthUnit>(profile.lengthUnit);
   const [idealPreset, setIdealPreset] = useState<IdealPreset>(profile.idealPreset);
+  const [calorieTarget, setCalorieTarget] = useState(profile.calorieTarget ? String(profile.calorieTarget) : '');
+  const [proteinTargetG, setProteinTargetG] = useState(profile.proteinTargetG ? String(profile.proteinTargetG) : '');
+  const [stepsTarget, setStepsTarget] = useState(profile.stepsTarget ? String(profile.stepsTarget) : '');
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importUrl, setImportUrl] = useState('');
@@ -57,6 +61,9 @@ export default function EditProfile() {
   }, [measurements, profile, sex, heightCm, idealPreset]);
 
   const onSave = () => {
+    const cal = parseFloat(calorieTarget);
+    const pro = parseFloat(proteinTargetG);
+    const steps = parseFloat(stepsTarget);
     setProfile({
       name,
       heightCm: heightCm || profile.heightCm,
@@ -67,6 +74,9 @@ export default function EditProfile() {
       weightUnit,
       lengthUnit,
       idealPreset,
+      calorieTarget: Number.isFinite(cal) ? cal : undefined,
+      proteinTargetG: Number.isFinite(pro) ? pro : undefined,
+      stepsTarget: Number.isFinite(steps) ? steps : undefined,
     });
     router.back();
   };
@@ -191,6 +201,14 @@ export default function EditProfile() {
               <Pill key={a.key} label={a.label} active={activityLevel === a.key} onPress={() => setActivityLevel(a.key)} />
             ))}
           </View>
+
+          <SectionHeader>Daily Targets</SectionHeader>
+          <Text style={styles.presetDescription}>
+            Set your own targets (e.g. from Gemini) to compare against what you actually log each day.
+          </Text>
+          <MeasurementField label="Calories" unit="kcal" value={calorieTarget} onChangeText={setCalorieTarget} />
+          <MeasurementField label="Protein" unit="g" value={proteinTargetG} onChangeText={setProteinTargetG} />
+          <MeasurementField label="Steps" unit="steps" value={stepsTarget} onChangeText={setStepsTarget} />
         </Card>
 
         <Button label="Save" onPress={onSave} style={{ marginTop: 20 }} />
