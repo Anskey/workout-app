@@ -84,11 +84,14 @@ export default function Measurements() {
               >
                 <View style={{ flex: 1 }}>
                   <Text style={styles.rowDate}>{formatLongDate(m.date)}</Text>
-                  <Text style={styles.rowMeta}>
-                    {HISTORY_KEYS.map((key) => (m[key] != null ? `${MEASUREMENT_LABELS[key]} ${formatLength(m[key] as number, profile.lengthUnit)}` : null))
-                      .filter(Boolean)
-                      .join(' · ') || '—'}
-                  </Text>
+                  <View style={styles.rowMetaGrid}>
+                    {HISTORY_KEYS.filter((key) => m[key] != null).map((key) => (
+                      <Text key={key} style={styles.rowMetaCell}>
+                        {MEASUREMENT_LABELS[key]} <Text style={styles.rowMetaValue}>{formatLength(m[key] as number, profile.lengthUnit)}</Text>
+                      </Text>
+                    ))}
+                    {HISTORY_KEYS.every((key) => m[key] == null) && <Text style={styles.rowMeta}>—</Text>}
+                  </View>
                 </View>
                 <Text style={styles.editHint}>Edit</Text>
                 <ChevronRightIcon color={colors.textFaint} />
@@ -108,9 +111,12 @@ const styles = StyleSheet.create({
   editProfileLink: { color: colors.gold, fontSize: 12.5, fontWeight: '600', marginTop: 6 },
   dateLabel: { color: colors.textFaint, fontSize: 12, marginBottom: 14, textTransform: 'uppercase', letterSpacing: 0.6 },
   emptyText: { color: colors.textSecondary, fontSize: 14 },
-  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12 },
+  row: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 12 },
   rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.divider },
   rowDate: { color: colors.textPrimary, fontSize: 14.5, fontWeight: '600' },
   rowMeta: { color: colors.textSecondary, fontSize: 12.5, marginTop: 3 },
+  rowMetaGrid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 5 },
+  rowMetaCell: { width: '50%', color: colors.textFaint, fontSize: 12, marginBottom: 4 },
+  rowMetaValue: { color: colors.textSecondary, fontWeight: '600' },
   editHint: { color: colors.gold, fontSize: 12, fontWeight: '600', marginRight: 4 },
 });
