@@ -11,8 +11,11 @@ import { useStore } from '@/store/useStore';
 import { compareToIdeal, getLatestMeasurement } from '@/logic/recommendations';
 import { formatLongDate } from '@/logic/dates';
 import { formatLength } from '@/logic/units';
-import { IDEAL_PRESETS, getIdealMeasurements } from '@/data/idealRatios';
+import { IDEAL_PRESETS, MEASUREMENT_LABELS, getIdealMeasurements } from '@/data/idealRatios';
 import { BodyComparisonFigure } from '@/components/BodyComparisonFigure';
+import type { MeasurementKey } from '@/types';
+
+const HISTORY_KEYS = Object.keys(MEASUREMENT_LABELS) as MeasurementKey[];
 
 export default function Measurements() {
   const profile = useStore((s) => s.profile);
@@ -82,10 +85,7 @@ export default function Measurements() {
                 <View style={{ flex: 1 }}>
                   <Text style={styles.rowDate}>{formatLongDate(m.date)}</Text>
                   <Text style={styles.rowMeta}>
-                    {[
-                      m.waistCm ? `waist ${formatLength(m.waistCm, profile.lengthUnit)}` : null,
-                      m.calfCm ? `calf ${formatLength(m.calfCm, profile.lengthUnit)}` : null,
-                    ]
+                    {HISTORY_KEYS.map((key) => (m[key] != null ? `${MEASUREMENT_LABELS[key]} ${formatLength(m[key] as number, profile.lengthUnit)}` : null))
                       .filter(Boolean)
                       .join(' · ') || '—'}
                   </Text>
