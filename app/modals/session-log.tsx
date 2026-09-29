@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
-import { Badge, Button } from '@/theme/ui';
+import { Badge, Button, Pill } from '@/theme/ui';
 import { Card } from '@/theme/Card';
 import { FormScrollView } from '@/components/FormScrollView';
 import { ModalHeader } from '@/components/ModalHeader';
@@ -23,6 +23,7 @@ import {
 } from '@/logic/sessionHistory';
 import { todayISODate } from '@/logic/dates';
 import { displayValueToKg, kgToDisplayValue } from '@/logic/units';
+import { DATE_WINDOWS, filterByWindow, type DateWindow } from '@/logic/dateWindows';
 import type { Exercise, SetLog, WeekPrescription, WorkoutSessionLog } from '@/types';
 
 function currentPrescription(exercise: Exercise, week: number): WeekPrescription | Exercise {
@@ -88,6 +89,7 @@ export default function SessionLog() {
 
   const [date, setDate] = useState(dateParam ?? todayISODate());
   const [setsByExercise, setSetsByExercise] = useState<Record<string, SetLog[]>>(() => buildSetsForDate(dateParam ?? todayISODate()));
+  const [historyWindow, setHistoryWindow] = useState<DateWindow>('all');
 
   const week = getEffectiveWeekForDay(day, sessionLogs, programId, date);
 
@@ -160,6 +162,15 @@ export default function SessionLog() {
         <ModalHeader title={day.name} />
         <DateField dateISO={date} onChange={onDateChange} />
 
+        <Text style={styles.historyWindowLabel}>Progress chart range</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 4 }}>
+          <View style={styles.pillRow}>
+            {DATE_WINDOWS.map((w) => (
+              <Pill key={w.key} label={w.label} active={historyWindow === w.key} onPress={() => setHistoryWindow(w.key)} />
+            ))}
+          </View>
+        </ScrollView>
+
         {day.exercises.map((exercise) => {
           const prescription = currentPrescription(exercise, week);
           const displayName = effectiveName(exercise);
@@ -202,7 +213,7 @@ export default function SessionLog() {
                 </View>
               )}
               <LiftHistoryChart
-                points={getSlotExerciseHistory(sessionLogs, dayId, exercise.id)}
+                points={filterByWindow(getSlotExerciseHistory(sessionLogs, dayId, exercise.id), historyWindow)}
                 weightUnit={weightUnit}
                 onPointPress={(p) => onDateChange(p.date)}
               />
@@ -260,6 +271,8 @@ export default function SessionLog() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scroll: { padding: 22 },
+  historyWindowLabel: { color: colors.textFaint, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 14, marginBottom: 6 },
+  pillRow: { flexDirection: 'row' },
   titleRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },
   exerciseName: { color: colors.textPrimary, fontSize: 16, fontWeight: '700', flex: 1 },
   swapLink: { color: colors.navyDeep, fontSize: 13, fontWeight: '600', marginTop: 2 },
