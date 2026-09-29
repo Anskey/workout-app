@@ -60,7 +60,15 @@ export default function Measurements() {
           )}
         </Card>
 
-        <SectionHeader>History</SectionHeader>
+        <SectionHeader
+          right={
+            <Pressable onPress={() => router.push('/modals/trends')}>
+              <Text style={styles.editProfileLink}>View Trends</Text>
+            </Pressable>
+          }
+        >
+          History
+        </SectionHeader>
         <Card>
           {sorted.length === 0 ? (
             <Text style={styles.emptyText}>No entries yet.</Text>

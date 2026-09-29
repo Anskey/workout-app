@@ -96,6 +96,7 @@ export default function RootLayout() {
             <Stack.Screen name="modals/program-picker" options={{ presentation: 'modal' }} />
             <Stack.Screen name="modals/edit-profile" options={{ presentation: 'modal' }} />
             <Stack.Screen name="modals/account" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="modals/trends" options={{ presentation: 'modal' }} />
           </Stack>
         </Background>
         </ThemeProvider>
