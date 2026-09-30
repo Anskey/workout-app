@@ -3,7 +3,7 @@ import { Platform, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
-import { DumbbellIcon, HomeIcon, NutritionIcon, RulerIcon } from '@/components/Icons';
+import { DumbbellIcon, HomeIcon, ListIcon, NutritionIcon, RulerIcon } from '@/components/Icons';
 
 export default function TabsLayout() {
   // Android's edge-to-edge display means the system gesture/nav bar overlays the
@@ -29,6 +29,10 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="program"
         options={{ title: 'Program', tabBarIcon: ({ color, size }) => <DumbbellIcon color={color as string} size={size} /> }}
+      />
+      <Tabs.Screen
+        name="exercises"
+        options={{ title: 'Exercises', tabBarIcon: ({ color, size }) => <ListIcon color={color as string} size={size} /> }}
       />
       <Tabs.Screen
         name="measurements"

@@ -50,6 +50,19 @@ export function NutritionIcon({ color, size = 22 }: IconProps) {
   );
 }
 
+export function ListIcon({ color, size = 22 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="4.5" cy="6" r="1.3" fill={color} />
+      <Circle cx="4.5" cy="12" r="1.3" fill={color} />
+      <Circle cx="4.5" cy="18" r="1.3" fill={color} />
+      <Line x1="9" y1="6" x2="21" y2="6" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+      <Line x1="9" y1="12" x2="21" y2="12" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+      <Line x1="9" y1="18" x2="21" y2="18" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
 export function ChevronRightIcon({ color, size = 18 }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
