@@ -53,7 +53,7 @@ export const FORM_CUES: Record<string, string[]> = {
     'Press up and slightly in so the dumbbells nearly touch at the top.',
     'Don’t flare elbows past 45° behind your torso at the bottom — keeps the shoulder in a safer position.',
   ],
-  'Triceps Extension (Bar)': [
+  'Bar Triceps Extension': [
     'Elbows pinned at your sides and pointed slightly forward — they shouldn’t drift back as the weight gets heavy.',
     'Lower under control to a full stretch behind your head, then extend fully at the top.',
     'Keep your upper arm still; only the forearm moves.',
@@ -108,7 +108,7 @@ export const FORM_CUES: Record<string, string[]> = {
     'This stretches the biceps at the bottom — don’t let your elbows drift forward to cheat the stretch.',
     'Curl without swinging the shoulders forward; keep your upper arm pinned to the bench.',
   ],
-  'Triceps Pressdown (Bar)': [
+  'Bar Triceps Pressdown': [
     'Elbows pinned to your sides, standing tall, slight forward lean from the hips.',
     'Only your forearms move — if your elbows drift back to help, drop the weight.',
     'Extend to a full lockout and squeeze before controlling the bar back up.',
@@ -213,7 +213,7 @@ export const FORM_CUES: Record<string, string[]> = {
     'Don’t fully lock out at the bottom; keep constant tension on the biceps.',
     'Curl and squeeze at the top without letting your shoulder rotate forward.',
   ],
-  'Triceps Pressdown (Rope)': [
+  'Rope Triceps Pressdown': [
     'Elbows pinned at your sides, rope starts at chest height.',
     'Split the rope ends apart and rotate your palms down as you extend, for a stronger peak contraction.',
     'Keep elbows still throughout — only the forearms move.',
@@ -273,7 +273,7 @@ export const FORM_CUES: Record<string, string[]> = {
     'Don’t fully lock out the elbows at the bottom; keep tension on the biceps.',
     'Curl and squeeze at the top, then lower slowly rather than letting it drop.',
   ],
-  'Diverging Pressdown (Rope)': [
+  'Rope Diverging Pressdown': [
     'Elbows pinned at your sides, rope handles starting together at chest height.',
     'As you press down, rotate your palms out and apart for a stronger triceps squeeze.',
     'Only your forearms move — keep your upper arms still throughout.',
@@ -283,7 +283,7 @@ export const FORM_CUES: Record<string, string[]> = {
     'The slow, palms-down lowering is the point — control it instead of rushing back down.',
     'Keep elbows pinned at your sides through both the curl and the reverse lowering.',
   ],
-  'Close-Grip Pushup (AMRAP)': [
+  'Close-Grip Pushup': [
     'Hands roughly shoulder-width or slightly narrower, directly under your shoulders.',
     'Keep your elbows tracking back close to your torso, not flared out to the sides.',
     'Lower your chest all the way to just above the floor, then press to full lockout — go until clean failure.',

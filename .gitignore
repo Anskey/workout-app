@@ -41,5 +41,6 @@ yarn-error.*
 /ios
 /android
 
-# source program PDFs (large binaries, not needed to build the app)
+# source program PDFs/spreadsheets (large binaries, not needed to build the app)
 *.pdf
+*.xlsx

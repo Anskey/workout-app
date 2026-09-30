@@ -43,8 +43,10 @@ export const WEAK_POINTS: WeakPointOptions[] = [
     label: 'Chest',
     optionSetA: ['DB Flye', 'Pec Deck', 'Press-Around'],
     optionSetB: [
-      'Chest Press Machine (incline if upper pecs lagging, flat if entire chest lagging)',
-      'Dumbbell Chest Press (incline if upper pecs lagging, flat if entire chest lagging)',
+      'Incline Chest Press Machine',
+      'Flat Chest Press Machine',
+      'Incline Dumbbell Chest Press',
+      'Flat Dumbbell Chest Press',
       'Deficit Pushup',
     ],
   },
@@ -87,8 +89,8 @@ export const WEAK_POINTS: WeakPointOptions[] = [
   {
     muscle: 'Forearms',
     label: 'Forearms',
-    optionSetA: ['DB Wrist Curl (Flexion)', 'Reverse Grip EZ-Bar Curl', 'Wrist Roller'],
-    optionSetB: ['DB Wrist Curl (Extension)', 'Hand Gripper', 'Plate Pinch'],
+    optionSetA: ['DB Wrist Flexion Curl', 'Reverse Grip EZ-Bar Curl', 'Wrist Roller'],
+    optionSetB: ['DB Wrist Extension Curl', 'Hand Gripper', 'Plate Pinch'],
   },
   {
     muscle: 'Biceps',
