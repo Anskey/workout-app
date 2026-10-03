@@ -35,6 +35,9 @@ const RADIUS = 16;
 const styles = StyleSheet.create({
   wrap: {
     borderRadius: RADIUS,
+    // Makes the card its own stacking context so the background layers (zIndex -1) sit behind
+    // its content on web too, not just in native child order.
+    zIndex: 0,
   },
   surface: {
     backgroundColor: colors.surface,
@@ -48,6 +51,7 @@ const styles = StyleSheet.create({
     padding: 18,
   },
   layer: {
+    zIndex: -1,
     position: 'absolute',
     top: 0,
     left: 0,

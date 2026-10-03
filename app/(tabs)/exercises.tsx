@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { insetWell } from '@/theme/surfaces';
-import { Badge, ScreenTitle, SectionHeader } from '@/theme/ui';
+import { Badge, Button, ScreenTitle, SectionHeader } from '@/theme/ui';
 import { Card } from '@/theme/Card';
 import { FormScrollView } from '@/components/FormScrollView';
 import { ProfileButton } from '@/components/ProfileButton';
@@ -44,6 +44,13 @@ export default function Exercises() {
           </View>
           <ProfileButton />
         </View>
+
+        <Button
+          label="Check logged weights for big jumps"
+          variant="outline"
+          onPress={() => router.push('/modals/history-check')}
+          style={{ marginTop: 4, marginBottom: 2 }}
+        />
 
         <TextInput
           value={query}

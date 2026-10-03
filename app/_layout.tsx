@@ -94,6 +94,7 @@ export default function RootLayout() {
             <Stack.Screen name="modals/measurement-log" options={modalOptions} />
             <Stack.Screen name="modals/nutrition-log" options={modalOptions} />
             <Stack.Screen name="modals/exercise-detail" options={modalOptions} />
+            <Stack.Screen name="modals/history-check" options={modalOptions} />
             <Stack.Screen name="modals/exercise-editor" options={modalOptions} />
             <Stack.Screen name="modals/exercise-swap" options={modalOptions} />
             <Stack.Screen name="modals/session-log" options={modalOptions} />
