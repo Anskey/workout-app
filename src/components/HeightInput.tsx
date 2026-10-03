@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { colors } from '@/theme/colors';
+import { insetWell } from '@/theme/surfaces';
 import { cmToFeetInches, feetInchesToCm } from '@/logic/units';
 import type { LengthUnit } from '@/types';
 
@@ -80,10 +81,8 @@ const styles = StyleSheet.create({
     minWidth: 0,
     color: colors.textPrimary,
     fontSize: 16,
-    backgroundColor: colors.surface,
-    borderRadius: 2,
-    borderWidth: 1,
-    borderColor: colors.surfaceBorder,
+    ...insetWell,
+    borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 10,
   },

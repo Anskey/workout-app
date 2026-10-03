@@ -3,6 +3,7 @@ import { StyleSheet, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
+import { insetWell } from '@/theme/surfaces';
 import { Button, Pill, ScreenTitle, SectionHeader } from '@/theme/ui';
 import { Card } from '@/theme/Card';
 import { FormScrollView } from '@/components/FormScrollView';
@@ -92,10 +93,8 @@ const styles = StyleSheet.create({
   textInput: {
     color: colors.textPrimary,
     fontSize: 16,
-    backgroundColor: colors.surface,
-    borderRadius: 2,
-    borderWidth: 1,
-    borderColor: colors.surfaceBorder,
+    ...insetWell,
+    borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 10,
     marginBottom: 8,

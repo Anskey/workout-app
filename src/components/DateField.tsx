@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { colors } from '@/theme/colors';
+import { insetWell } from '@/theme/surfaces';
 import { formatLongDate, parseLocalISODate } from '@/logic/dates';
 
 interface Props {
@@ -82,10 +83,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.surface,
-    borderRadius: 2,
-    borderWidth: 1,
-    borderColor: colors.surfaceBorder,
+    ...insetWell,
+    borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
     marginBottom: 8,
@@ -95,10 +94,8 @@ const styles = StyleSheet.create({
   input: {
     color: colors.textPrimary,
     fontSize: 16,
-    backgroundColor: colors.surface,
-    borderRadius: 2,
-    borderWidth: 1,
-    borderColor: colors.surfaceBorder,
+    ...insetWell,
+    borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 10,
     marginBottom: 8,

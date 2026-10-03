@@ -3,6 +3,8 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
+import { insetWell } from '@/theme/surfaces';
+import { ProfileButton } from '@/components/ProfileButton';
 import { Badge, Button, ScreenTitle, SectionHeader, serif } from '@/theme/ui';
 import { Card } from '@/theme/Card';
 import { StatTile } from '@/components/StatTile';
@@ -49,9 +51,7 @@ export default function Home() {
               {profile.name ? `Hi, ${profile.name}` : 'Welcome back'}
             </ScreenTitle>
           </View>
-          <Pressable onPress={() => router.push('/modals/edit-profile')}>
-            <Text style={styles.editProfileLink}>Profile & Goals</Text>
-          </Pressable>
+          <ProfileButton />
         </View>
 
         {reminder.due && (
@@ -160,16 +160,15 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   scroll: { padding: 22, paddingBottom: 120 },
   titleRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
-  editProfileLink: { color: colors.gold, fontSize: 12.5, fontWeight: '600', marginTop: 6 },
   reminderCard: { flexDirection: 'row', alignItems: 'center', marginBottom: 18, gap: 12 },
   reminderTitle: { color: colors.textPrimary, fontWeight: '700', fontSize: 14.5 },
   reminderCopy: { color: colors.textSecondary, fontSize: 12.5, marginTop: 2 },
-  statsRow: { flexDirection: 'row', gap: 16 },
+  statsRow: { flexDirection: 'row', gap: 10, ...insetWell, borderRadius: 14, padding: 14 },
   suggestionRow: { flexDirection: 'row', paddingVertical: 10 },
   suggestionRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.divider },
   suggestionText: { color: colors.textSecondary, fontSize: 13.5, lineHeight: 19 },
   link: { color: colors.gold, fontSize: 12.5, fontWeight: '600' },
-  programName: { fontFamily: serif, fontSize: 20, color: colors.textPrimary },
+  programName: { fontFamily: serif, fontVariant: ['lining-nums'], fontSize: 20, color: colors.textPrimary },
   dayPreviewRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 },
   dayPreviewText: { color: colors.textSecondary, fontSize: 13.5 },
 });

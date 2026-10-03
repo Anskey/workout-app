@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { colors } from '@/theme/colors';
+import { insetWell } from '@/theme/surfaces';
 
 interface Props {
   label: string;
@@ -44,10 +45,8 @@ const styles = StyleSheet.create({
   inputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: 2,
-    borderWidth: 1,
-    borderColor: colors.surfaceBorder,
+    ...insetWell,
+    borderRadius: 10,
     paddingHorizontal: 12,
     minWidth: 100,
   },

@@ -3,6 +3,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
+import { ProfileButton } from '@/components/ProfileButton';
 import { Badge, Button, Pill, ScreenTitle, SectionHeader, serif } from '@/theme/ui';
 import { Card } from '@/theme/Card';
 import { ChevronRightIcon, PlusIcon } from '@/components/Icons';
@@ -49,9 +50,7 @@ export default function Program() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={[styles.titleRow, { paddingHorizontal: 22, paddingTop: 12 }]}>
           <View style={{ flex: 1 }} />
-          <Pressable onPress={() => router.push('/modals/edit-profile')}>
-            <Text style={styles.editProfileLink}>Profile & Goals</Text>
-          </Pressable>
+          <ProfileButton />
         </View>
         <View style={styles.empty}>
           <Text style={styles.emptyText}>No program yet.</Text>
@@ -70,9 +69,7 @@ export default function Program() {
           <View style={{ flex: 1 }}>
             <ScreenTitle subtitle={`${program.days.length} workout days`}>Program</ScreenTitle>
           </View>
-          <Pressable onPress={() => router.push('/modals/edit-profile')}>
-            <Text style={styles.editProfileLink}>Profile & Goals</Text>
-          </Pressable>
+          <ProfileButton />
         </View>
 
         <Pressable onPress={() => router.push('/modals/program-picker')} style={{ marginBottom: 18 }}>
@@ -279,13 +276,12 @@ const styles = StyleSheet.create({
   scroll: { padding: 22, paddingBottom: 140 },
   headerRow: { marginBottom: 2 },
   titleRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
-  editProfileLink: { color: colors.gold, fontSize: 12.5, fontWeight: '600', marginTop: 6 },
-  programName: { fontFamily: serif, fontSize: 18, color: colors.textPrimary },
+  programName: { fontFamily: serif, fontVariant: ['lining-nums'], fontSize: 18, color: colors.textPrimary },
   blockLabel: { color: colors.textFaint, fontSize: 12, marginBottom: 14, marginTop: -8 },
   pillRow: { flexDirection: 'row', flexWrap: 'wrap' },
   dayCard: { marginBottom: 14, padding: 16 },
   dayHeaderRow: { flexDirection: 'row', alignItems: 'center' },
-  dayName: { fontFamily: serif, fontSize: 19, color: colors.textPrimary },
+  dayName: { fontFamily: serif, fontVariant: ['lining-nums'], fontSize: 19, color: colors.textPrimary },
   dayMeta: { color: colors.textFaint, fontSize: 12, marginTop: 2 },
   editLink: { color: colors.gold, fontSize: 13, fontWeight: '600' },
   headerLinks: { flexDirection: 'row', alignItems: 'center', gap: 16 },

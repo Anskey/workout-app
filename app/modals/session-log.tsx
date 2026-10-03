@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
+import { insetWell } from '@/theme/surfaces';
 import { Badge, Button, Pill } from '@/theme/ui';
 import { Card } from '@/theme/Card';
 import { FormScrollView } from '@/components/FormScrollView';
@@ -303,10 +304,8 @@ const styles = StyleSheet.create({
     textAlignVertical: 'center',
     color: colors.textPrimary,
     fontSize: 15,
-    backgroundColor: colors.surface,
-    borderRadius: 2,
-    borderWidth: 1,
-    borderColor: colors.surfaceBorder,
+    ...insetWell,
+    borderRadius: 10,
     paddingVertical: 8,
   },
   setInputNarrow: {
@@ -315,10 +314,8 @@ const styles = StyleSheet.create({
     textAlignVertical: 'center',
     color: colors.textPrimary,
     fontSize: 15,
-    backgroundColor: colors.surface,
-    borderRadius: 2,
-    borderWidth: 1,
-    borderColor: colors.surfaceBorder,
+    ...insetWell,
+    borderRadius: 10,
     paddingVertical: 8,
   },
 });

@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
+import { ProfileButton } from '@/components/ProfileButton';
 import { Button, ScreenTitle, SectionHeader } from '@/theme/ui';
 import { Card } from '@/theme/Card';
 import { ComparisonBar } from '@/components/ComparisonBar';
@@ -51,9 +52,7 @@ export default function Measurements() {
           <View style={{ flex: 1 }}>
             <ScreenTitle subtitle="Weekly check-ins keep your comparison and suggestions current.">Measurements</ScreenTitle>
           </View>
-          <Pressable onPress={() => router.push('/modals/edit-profile')}>
-            <Text style={styles.editProfileLink}>Profile & Goals</Text>
-          </Pressable>
+          <ProfileButton />
         </View>
 
         <Button label="Log New Measurements" onPress={() => router.push('/modals/measurement-log')} style={{ marginBottom: 20 }} />
@@ -62,7 +61,7 @@ export default function Measurements() {
           right={
             latest ? (
               <Pressable onPress={() => router.push({ pathname: '/modals/measurement-log', params: { entryId: latest.id } })}>
-                <Text style={styles.editProfileLink}>Edit Latest</Text>
+                <Text style={styles.goldLink}>Edit Latest</Text>
               </Pressable>
             ) : undefined
           }
@@ -84,7 +83,7 @@ export default function Measurements() {
         <SectionHeader
           right={
             <Pressable onPress={() => router.push('/modals/trends')}>
-              <Text style={styles.editProfileLink}>View Trends</Text>
+              <Text style={styles.goldLink}>View Trends</Text>
             </Pressable>
           }
         >
@@ -153,8 +152,8 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   scroll: { padding: 22, paddingBottom: 140 },
   titleRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
-  editProfileLink: { color: colors.gold, fontSize: 12.5, fontWeight: '600', marginTop: 6 },
   dateLabel: { color: colors.textFaint, fontSize: 12, marginBottom: 14, textTransform: 'uppercase', letterSpacing: 0.6 },
+  goldLink: { color: colors.gold, fontSize: 13.5, fontWeight: '600', paddingVertical: 8 },
   emptyText: { color: colors.textSecondary, fontSize: 14 },
   rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.divider },
   gridCell: { height: ROW_HEIGHT, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 8 },

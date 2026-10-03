@@ -20,6 +20,10 @@ const navTheme = {
   colors: { ...DefaultTheme.colors, background: 'transparent', card: 'transparent' },
 };
 
+// Modals rise from the bottom like a sheet; pushed screens slide in from the right and the
+// tabs cross-fade — three distinct motions, so you can feel where you are in the app.
+const modalOptions = { presentation: 'modal', animation: 'slide_from_bottom' } as const;
+
 let didSetDefaultFont = false;
 function applyDefaultFont() {
   if (didSetDefaultFont) return;
@@ -80,24 +84,24 @@ export default function RootLayout() {
           <Stack
             screenOptions={{
               headerShown: false,
-              animation: 'fade_from_bottom',
+              animation: 'slide_from_right',
               contentStyle: { backgroundColor: 'transparent' },
             }}
           >
             <Stack.Screen name="index" />
             <Stack.Screen name="onboarding" />
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="modals/measurement-log" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="modals/nutrition-log" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="modals/exercise-detail" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="modals/exercise-editor" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="modals/exercise-swap" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="modals/session-log" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="modals/day-editor" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="modals/program-picker" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="modals/edit-profile" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="modals/account" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="modals/trends" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
+            <Stack.Screen name="modals/measurement-log" options={modalOptions} />
+            <Stack.Screen name="modals/nutrition-log" options={modalOptions} />
+            <Stack.Screen name="modals/exercise-detail" options={modalOptions} />
+            <Stack.Screen name="modals/exercise-editor" options={modalOptions} />
+            <Stack.Screen name="modals/exercise-swap" options={modalOptions} />
+            <Stack.Screen name="modals/session-log" options={modalOptions} />
+            <Stack.Screen name="modals/day-editor" options={modalOptions} />
+            <Stack.Screen name="modals/program-picker" options={modalOptions} />
+            <Stack.Screen name="modals/edit-profile" options={modalOptions} />
+            <Stack.Screen name="modals/account" options={modalOptions} />
+            <Stack.Screen name="modals/trends" options={modalOptions} />
           </Stack>
         </Background>
         </ThemeProvider>

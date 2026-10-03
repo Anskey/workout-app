@@ -3,6 +3,7 @@ import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-nativ
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
+import { insetWell } from '@/theme/surfaces';
 import { Button, SectionHeader, serif } from '@/theme/ui';
 import { Card } from '@/theme/Card';
 import { FormScrollView } from '@/components/FormScrollView';
@@ -103,16 +104,14 @@ const styles = StyleSheet.create({
   scroll: { padding: 22 },
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14 },
   rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.divider },
-  programName: { fontFamily: serif, fontSize: 17, color: colors.textPrimary },
+  programName: { fontFamily: serif, fontVariant: ['lining-nums'], fontSize: 17, color: colors.textPrimary },
   programMeta: { color: colors.textFaint, fontSize: 12, marginTop: 2 },
   resetLink: { color: colors.textFaint, fontSize: 12.5, fontWeight: '600' },
   input: {
     color: colors.textPrimary,
     fontSize: 16,
-    backgroundColor: colors.surface,
-    borderRadius: 2,
-    borderWidth: 1,
-    borderColor: colors.surfaceBorder,
+    ...insetWell,
+    borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
   },

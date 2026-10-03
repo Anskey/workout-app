@@ -3,9 +3,11 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
+import { insetWell } from '@/theme/surfaces';
 import { Badge, ScreenTitle, SectionHeader } from '@/theme/ui';
 import { Card } from '@/theme/Card';
 import { FormScrollView } from '@/components/FormScrollView';
+import { ProfileButton } from '@/components/ProfileButton';
 import { ChevronRightIcon } from '@/components/Icons';
 import { useStore } from '@/store/useStore';
 import { ALL_MUSCLE_GROUPS, getMuscleColor } from '@/data/muscleGroups';
@@ -36,7 +38,12 @@ export default function Exercises() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <FormScrollView contentContainerStyle={styles.scroll}>
-        <ScreenTitle subtitle="Every exercise you can use, in any program. Tap one to see or edit its notes.">Exercises</ScreenTitle>
+        <View style={styles.titleRow}>
+          <View style={{ flex: 1 }}>
+            <ScreenTitle subtitle="Every exercise you can use, in any program. Tap one to see or edit its notes.">Exercises</ScreenTitle>
+          </View>
+          <ProfileButton />
+        </View>
 
         <TextInput
           value={query}
@@ -84,13 +91,12 @@ export default function Exercises() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scroll: { padding: 22, paddingBottom: 140 },
+  titleRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },
   search: {
     color: colors.textPrimary,
     fontSize: 15,
-    backgroundColor: colors.surface,
-    borderRadius: 2,
-    borderWidth: 1,
-    borderColor: colors.surfaceBorder,
+    ...insetWell,
+    borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 10,
     marginTop: 16,

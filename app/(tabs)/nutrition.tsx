@@ -3,6 +3,8 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
+import { insetWell } from '@/theme/surfaces';
+import { ProfileButton } from '@/components/ProfileButton';
 import { Button, Pill, ScreenTitle, SectionHeader } from '@/theme/ui';
 import { Card } from '@/theme/Card';
 import { StatTile } from '@/components/StatTile';
@@ -59,9 +61,7 @@ export default function Nutrition() {
           <View style={{ flex: 1 }}>
             <ScreenTitle subtitle="Daily calories, protein, and weight — with weekly-trend suggestions.">Nutrition</ScreenTitle>
           </View>
-          <Pressable onPress={() => router.push('/modals/edit-profile')}>
-            <Text style={styles.editProfileLink}>Profile & Goals</Text>
-          </Pressable>
+          <ProfileButton />
         </View>
 
         <Card style={{ marginBottom: 18 }}>
@@ -216,8 +216,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   scroll: { padding: 22, paddingBottom: 140 },
   titleRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
-  editProfileLink: { color: colors.gold, fontSize: 12.5, fontWeight: '600', marginTop: 6 },
-  statsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 16 },
+  statsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 16, ...insetWell, borderRadius: 14, padding: 14 },
   statCell: { width: '42%' },
   suggestionRow: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 10, gap: 10 },
   suggestionRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.divider },

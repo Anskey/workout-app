@@ -50,6 +50,15 @@ export function NutritionIcon({ color, size = 22 }: IconProps) {
   );
 }
 
+export function UserIcon({ color, size = 22 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="12" cy="8.5" r="3.6" stroke={color} strokeWidth={1.8} />
+      <Path d="M4.8 19.6c.9-3.4 3.7-5.1 7.2-5.1s6.3 1.7 7.2 5.1" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
 export function ListIcon({ color, size = 22 }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
