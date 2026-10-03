@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { colors } from './colors';
@@ -103,9 +103,11 @@ export function Pill({ label, active, onPress }: { label: string; active?: boole
     <Pressable onPress={onPress} onPressIn={tap} hitSlop={4} style={styles.pillWrap}>
       {({ pressed }) =>
         active ? (
-          <LinearGradient colors={['#153950', '#1D4A6B', '#235982']} style={[styles.pill, styles.pillActive]}>
+          // Selected = pressed into the surface: a light recessed well with a navy rim and
+          // navy label, rather than a heavy solid-navy block.
+          <View style={[styles.pill, styles.pillActive]}>
             <Text style={[styles.pillLabel, styles.pillLabelActive]}>{label}</Text>
-          </LinearGradient>
+          </View>
         ) : (
           <View style={[styles.pill, raisedEdge, !pressed && raised(1)]}>
             <LinearGradient
@@ -176,20 +178,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  goldEdge: {
-    borderWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.75)',
-    borderLeftColor: 'rgba(255,240,205,0.5)',
-    borderRightColor: 'rgba(165,112,31,0.45)',
-    borderBottomColor: '#A5701F',
-  },
-  navyEdge: {
-    borderWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.28)',
-    borderLeftColor: 'rgba(255,255,255,0.14)',
-    borderRightColor: 'rgba(0,0,0,0.25)',
-    borderBottomColor: '#0F2B3F',
-  },
+  // Android can't render different border colours per side on rounded corners without
+  // lumpy artefacts, so it gets a single even edge colour.
+  goldEdge:
+    Platform.OS === 'android'
+      ? { borderWidth: 1, borderColor: '#B7822A' }
+      : {
+          borderWidth: 1,
+          borderTopColor: 'rgba(255,255,255,0.75)',
+          borderLeftColor: 'rgba(255,240,205,0.5)',
+          borderRightColor: 'rgba(165,112,31,0.45)',
+          borderBottomColor: '#A5701F',
+        },
+  navyEdge:
+    Platform.OS === 'android'
+      ? { borderWidth: 1, borderColor: '#12344C' }
+      : {
+          borderWidth: 1,
+          borderTopColor: 'rgba(255,255,255,0.28)',
+          borderLeftColor: 'rgba(255,255,255,0.14)',
+          borderRightColor: 'rgba(0,0,0,0.25)',
+          borderBottomColor: '#0F2B3F',
+        },
   // Letterpress: a 1px light shadow under the text makes it look stamped into the face.
   goldButtonLabel: {
     fontFamily: sansSemiBold,
@@ -254,11 +264,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   pillActive: {
-    borderWidth: 1,
-    borderTopColor: '#0D2536',
-    borderLeftColor: '#12344C',
-    borderRightColor: 'rgba(255,255,255,0.18)',
-    borderBottomColor: 'rgba(255,255,255,0.28)',
+    backgroundColor: '#DCE8F2',
+    borderWidth: 1.5,
+    borderColor: 'rgba(29,74,107,0.6)',
   },
   pillLabel: {
     fontFamily: sansMedium,
@@ -267,6 +275,6 @@ const styles = StyleSheet.create({
   },
   pillLabelActive: {
     fontFamily: sansSemiBold,
-    color: colors.textOnNavy,
+    color: colors.navyDeep,
   },
 });

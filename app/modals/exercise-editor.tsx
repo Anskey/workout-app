@@ -1,28 +1,27 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { insetWell } from '@/theme/surfaces';
-import { Button, Pill, SectionHeader } from '@/theme/ui';
+import { Badge, Button, Pill, SectionHeader } from '@/theme/ui';
 import { Card } from '@/theme/Card';
 import { FormScrollView } from '@/components/FormScrollView';
 import { ModalHeader } from '@/components/ModalHeader';
 import { MeasurementField } from '@/components/MeasurementField';
+import { ChevronRightIcon } from '@/components/Icons';
 import { generateId, useStore } from '@/store/useStore';
-import { ALL_MUSCLE_GROUPS } from '@/data/muscleGroups';
-import { LiftHistoryChart } from '@/components/LiftHistoryChart';
-import { getFormCues } from '@/data/formCues';
-import { formatSet, getLastSlotTopSet, getSlotExerciseHistory } from '@/logic/sessionHistory';
+import { ALL_MUSCLE_GROUPS, getMuscleColor } from '@/data/muscleGroups';
 import type { MuscleGroup, WeekPrescription } from '@/types';
 
+/** The program's view of an exercise slot: which exercise it is (read-only here — an exercise's
+ * details live in the Exercises library) and how this program prescribes it (sets, reps, RPE,
+ * rest). Name and muscle groups are only editable when creating a brand-new exercise. */
 export default function ExerciseEditor() {
   const { programId, dayId, exerciseId } = useLocalSearchParams<{ programId: string; dayId: string; exerciseId?: string }>();
   const programs = useStore((s) => s.programs);
   const upsertExercise = useStore((s) => s.upsertExercise);
   const deleteExercise = useStore((s) => s.deleteExercise);
-  const sessionLogs = useStore((s) => s.sessionLogs);
-  const weightUnit = useStore((s) => s.profile.weightUnit);
 
   const program = programs.find((p) => p.id === programId);
   const day = program?.days.find((d) => d.id === dayId);
@@ -44,13 +43,6 @@ export default function ExerciseEditor() {
 
   const toggleMuscle = (m: MuscleGroup) =>
     setMuscles((prev) => (prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]));
-
-  const history = useMemo(
-    () => (existing && dayId ? getSlotExerciseHistory(sessionLogs, dayId, existing.id) : []),
-    [existing, dayId, sessionLogs]
-  );
-  const topSet = existing && dayId ? getLastSlotTopSet(sessionLogs, dayId, existing.id) : undefined;
-  const cues = existing ? getFormCues(existing.name) : undefined;
 
   const onSave = () => {
     if (!name.trim() || !programId || !dayId) return;
@@ -86,17 +78,49 @@ export default function ExerciseEditor() {
 
   const onDelete = () => {
     if (!existing || !programId || !dayId) return;
-    Alert.alert('Delete exercise?', `"${existing.name}" will be removed from this day.`, [
+    Alert.alert('Remove from this day?', `"${existing.name}" will be removed from ${day?.name ?? 'this day'}. The exercise itself stays in your library.`, [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => { deleteExercise(programId, dayId, existing.id); router.back(); } },
+      { text: 'Remove', style: 'destructive', onPress: () => { deleteExercise(programId, dayId, existing.id); router.back(); } },
     ]);
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <FormScrollView contentContainerStyle={styles.scroll}>
-          <ModalHeader title={existing ? 'Edit Exercise' : 'New Exercise'} />
+        <ModalHeader title={existing ? 'Prescription' : 'Add Exercise'} />
+        {day && (
+          <Text style={styles.context}>
+            {day.name} · {program?.name}
+          </Text>
+        )}
 
+        {existing ? (
+          <Card style={{ marginBottom: 16 }} padded={false}>
+            <Pressable
+              onPress={() => router.push({ pathname: '/modals/exercise-detail', params: { name: existing.name } })}
+              style={styles.exerciseRow}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={styles.exerciseName}>{existing.name}</Text>
+                <View style={styles.badgeRow}>
+                  {existing.muscleGroups.map((m) => (
+                    <Badge key={m} label={m} color={getMuscleColor(m)} />
+                  ))}
+                </View>
+                <Text style={styles.exerciseHint}>View exercise details, notes and history</Text>
+              </View>
+              <ChevronRightIcon color={colors.textFaint} />
+            </Pressable>
+            <View style={styles.divider} />
+            <Pressable
+              onPress={() => router.push({ pathname: '/modals/exercise-swap', params: { programId, dayId, exerciseId: existing.id } })}
+              style={styles.swapRow}
+            >
+              <Text style={styles.swapText}>Swap for a different exercise</Text>
+              <ChevronRightIcon color={colors.textFaint} />
+            </Pressable>
+          </Card>
+        ) : (
           <Card style={{ marginBottom: 16 }}>
             <SectionHeader>Name</SectionHeader>
             <TextInput
@@ -113,51 +137,26 @@ export default function ExerciseEditor() {
                 <Pill key={m} label={m} active={muscles.includes(m)} onPress={() => toggleMuscle(m)} />
               ))}
             </View>
-
-            {cues && (
-              <>
-                <SectionHeader>Form Cues</SectionHeader>
-                <View style={styles.cuesBox}>
-                  {cues.map((c, i) => (
-                    <Text key={i} style={styles.cueText}>
-                      · {c}
-                    </Text>
-                  ))}
-                </View>
-              </>
-            )}
           </Card>
+        )}
 
-          {existing && (topSet || history.length > 0) && (
-            <Card style={{ marginBottom: 16 }}>
-              <SectionHeader>Lift History</SectionHeader>
-              {topSet && <Text style={styles.lastText}>Last best: {formatSet(topSet, weightUnit)}</Text>}
-              <LiftHistoryChart
-                points={history}
-                weightUnit={weightUnit}
-                onPointPress={(p) => router.push({ pathname: '/modals/session-log', params: { programId, dayId, date: p.date } })}
-              />
-            </Card>
-          )}
+        <Card>
+          <SectionHeader>{hasWeeklyProgression ? `This program — Week ${currentWeek}` : 'This program'}</SectionHeader>
+          <Text style={styles.weekHint}>
+            {hasWeeklyProgression
+              ? `Sets, reps and effort for this exercise in ${program?.name ?? 'this program'}. You’re editing Week ${currentWeek} of ${day?.blockLabel ?? 'this block'} — switch weeks from the Program tab to edit a different one.`
+              : `Sets, reps and effort for this exercise in ${program?.name ?? 'this program'}. A different program can prescribe it differently.`}
+          </Text>
+          <MeasurementField label="Warm-up Sets" unit="" value={warmupSets} onChangeText={setWarmupSets} placeholder="1-2" />
+          <MeasurementField label="Working Sets" unit="" value={workingSets} onChangeText={setWorkingSets} placeholder="2" />
+          <MeasurementField label="Reps" unit="" value={reps} onChangeText={setReps} placeholder="8-12" />
+          <MeasurementField label="Early Set RPE" unit="" value={earlyRPE} onChangeText={setEarlyRPE} placeholder="~7" />
+          <MeasurementField label="Last Set RPE" unit="" value={lastRPE} onChangeText={setLastRPE} placeholder="~9" />
+          <MeasurementField label="Rest" unit="" value={rest} onChangeText={setRest} placeholder="~2 min" />
+        </Card>
 
-          <Card>
-            <SectionHeader>{hasWeeklyProgression ? `Prescription — Week ${currentWeek}` : 'Prescription'}</SectionHeader>
-            {hasWeeklyProgression && (
-              <Text style={styles.weekHint}>
-                This exercise has its own week-by-week plan. You’re editing Week {currentWeek} of {day?.blockLabel ?? 'this block'} —
-                switch weeks from the Program tab to edit a different one.
-              </Text>
-            )}
-            <MeasurementField label="Warm-up Sets" unit="" value={warmupSets} onChangeText={setWarmupSets} placeholder="1-2" />
-            <MeasurementField label="Working Sets" unit="" value={workingSets} onChangeText={setWorkingSets} placeholder="2" />
-            <MeasurementField label="Reps" unit="" value={reps} onChangeText={setReps} placeholder="8-12" />
-            <MeasurementField label="Early Set RPE" unit="" value={earlyRPE} onChangeText={setEarlyRPE} placeholder="~7" />
-            <MeasurementField label="Last Set RPE" unit="" value={lastRPE} onChangeText={setLastRPE} placeholder="~9" />
-            <MeasurementField label="Rest" unit="" value={rest} onChangeText={setRest} placeholder="~2 min" />
-          </Card>
-
-          <Button label="Save" onPress={onSave} disabled={!name.trim()} style={{ marginTop: 20 }} />
-          {existing && <Button label="Delete Exercise" variant="ghost" onPress={onDelete} style={{ marginTop: 14 }} />}
+        <Button label="Save" onPress={onSave} disabled={!name.trim()} style={{ marginTop: 20 }} />
+        {existing && <Button label="Remove From This Day" variant="ghost" onPress={onDelete} style={{ marginTop: 14 }} />}
       </FormScrollView>
     </SafeAreaView>
   );
@@ -166,6 +165,7 @@ export default function ExerciseEditor() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scroll: { padding: 22 },
+  context: { color: colors.textFaint, fontSize: 12.5, marginTop: -10, marginBottom: 16 },
   input: {
     color: colors.textPrimary,
     fontSize: 16,
@@ -176,8 +176,12 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   pillWrap: { flexDirection: 'row', flexWrap: 'wrap' },
-  weekHint: { color: colors.textFaint, fontSize: 12, lineHeight: 17, marginBottom: 10 },
-  lastText: { color: colors.gold, fontSize: 12.5, fontWeight: '600', marginBottom: 10, marginTop: -6 },
-  cuesBox: { backgroundColor: colors.bgAlt, borderRadius: 2, padding: 10, marginTop: 4 },
-  cueText: { color: colors.textSecondary, fontSize: 12.5, lineHeight: 18 },
+  exerciseRow: { flexDirection: 'row', alignItems: 'center', padding: 18 },
+  exerciseName: { color: colors.textPrimary, fontSize: 17, fontWeight: '700' },
+  badgeRow: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 },
+  exerciseHint: { color: colors.gold, fontSize: 12.5, fontWeight: '600', marginTop: 2 },
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.divider, marginHorizontal: 18 },
+  swapRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingVertical: 14, minHeight: 48 },
+  swapText: { color: colors.navyDeep, fontSize: 14.5, fontWeight: '600' },
+  weekHint: { color: colors.textFaint, fontSize: 12.5, lineHeight: 18, marginBottom: 10 },
 });

@@ -7,7 +7,9 @@ import { colors } from './colors';
 export function raised(level: 1 | 2 | 3 | 4): ViewStyle {
   return (
     Platform.select<ViewStyle>({
-      android: { elevation: level * 2 },
+      // Light elevation, tinted blue (Android 9+ honours shadowColor) so it reads as a soft
+      // lift rather than a grey smear.
+      android: { elevation: [0, 1, 2, 3, 5][level], shadowColor: colors.navyDeep },
       default: {
         shadowColor: colors.navyDeep,
         shadowOffset: { width: 0, height: level * 1.5 },
@@ -28,25 +30,33 @@ export const goldBevelLocations = [0, 0.45, 1] as const;
 /** Deep navy leather-ish face for the secondary filled button and pressed-in pills. */
 export const navyBevel = ['#2C5F86', '#1D4A6B', '#173E5A'] as const;
 
+const isAndroid = Platform.OS === 'android';
+
 /** Light catches the top edge and falls off at the bottom edge — the bevel on a raised plate. */
-export const raisedEdge: ViewStyle = {
-  borderWidth: 1,
-  borderTopColor: 'rgba(255,255,255,0.95)',
-  borderLeftColor: 'rgba(255,255,255,0.6)',
-  borderRightColor: 'rgba(47,102,144,0.14)',
-  borderBottomColor: 'rgba(47,102,144,0.28)',
-};
+export const raisedEdge: ViewStyle = isAndroid
+  ? // Android renders per-side border colours badly on rounded corners (lumpy shapes), so it
+    // gets one even hairline instead; the gradient and shadow carry the depth.
+    { borderWidth: 1, borderColor: 'rgba(47,102,144,0.16)' }
+  : {
+      borderWidth: 1,
+      borderTopColor: 'rgba(255,255,255,0.95)',
+      borderLeftColor: 'rgba(255,255,255,0.6)',
+      borderRightColor: 'rgba(47,102,144,0.14)',
+      borderBottomColor: 'rgba(47,102,144,0.28)',
+    };
 
 /** A recessed well (inputs, tracks): dark lip along the top, light catching the bottom edge —
  * the reverse of a raised plate, so it reads as pressed into the surface. */
-export const insetWell: ViewStyle = {
-  backgroundColor: '#EBF2F8',
-  borderWidth: 1,
-  borderTopColor: 'rgba(28,43,56,0.22)',
-  borderLeftColor: 'rgba(28,43,56,0.12)',
-  borderRightColor: 'rgba(255,255,255,0.9)',
-  borderBottomColor: 'rgba(255,255,255,0.95)',
-};
+export const insetWell: ViewStyle = isAndroid
+  ? { backgroundColor: '#E6EEF5', borderWidth: 1, borderColor: 'rgba(28,43,56,0.16)' }
+  : {
+      backgroundColor: '#EBF2F8',
+      borderWidth: 1,
+      borderTopColor: 'rgba(28,43,56,0.22)',
+      borderLeftColor: 'rgba(28,43,56,0.12)',
+      borderRightColor: 'rgba(255,255,255,0.9)',
+      borderBottomColor: 'rgba(255,255,255,0.95)',
+    };
 
 /** Letterpress: a 1px light edge under dark text makes headings look pressed into the page. */
 export const engraved = {
