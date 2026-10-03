@@ -23,13 +23,14 @@ interface Alternative {
 export default function ExerciseSwap() {
   const { programId, dayId, exerciseId } = useLocalSearchParams<{ programId: string; dayId: string; exerciseId: string }>();
   const programs = useStore((s) => s.programs);
+  const sessionLogs = useStore((s) => s.sessionLogs);
   const upsertExercise = useStore((s) => s.upsertExercise);
 
   const program = programs.find((p) => p.id === programId);
   const day = program?.days.find((d) => d.id === dayId);
   const existing = day?.exercises.find((e) => e.id === exerciseId);
 
-  const library = useMemo(() => buildExerciseLibrary(programs), [programs]);
+  const library = useMemo(() => buildExerciseLibrary(programs, sessionLogs), [programs, sessionLogs]);
   const libraryByName = useMemo(() => {
     const map = new Map<string, MuscleGroup[]>();
     library.forEach((l) => map.set(l.name.toLowerCase(), l.muscleGroups));

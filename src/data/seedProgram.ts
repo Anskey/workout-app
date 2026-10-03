@@ -86,7 +86,7 @@ function buildBlock1Days(): WorkoutDay[] {
         name: 'Cable Crunch',
         muscleGroups: ['Abs'],
         warmupSets: '1', workingSets: '2', reps: '10-12', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
-        substitutions: ['Weighted Decline Crunch', 'Weighted Crunch'],
+        substitutions: ['Decline Weighted Crunch', 'Weighted Crunch'],
       }),
     ],
   };
@@ -110,7 +110,7 @@ function buildBlock1Days(): WorkoutDay[] {
         substitutions: ['Flat DB Bench Press', 'Barbell Bench Press'],
       }),
       ex({
-        name: 'Bottom-Half Cable Flye',
+        name: 'Bottom-Half Seated Cable Flye',
         muscleGroups: ['Chest'],
         warmupSets: '2', workingSets: '2', reps: '8-10', earlyRPE: '~7-8', lastRPE: '~9', rest: '~2-3 min',
         substitutions: ['Bottom-Half DB Flye', 'Bottom-Half Pec Deck'],
@@ -152,7 +152,7 @@ function buildBlock1Days(): WorkoutDay[] {
         name: 'Smith Machine Squat',
         muscleGroups: ['Quads'],
         warmupSets: '2-4', workingSets: '2', reps: '6-8', earlyRPE: '~7', lastRPE: '~8', rest: '~3-5 min',
-        substitutions: ['Bulgarian Split Squat', 'High-Bar Back Squat'],
+        substitutions: ['DB Bulgarian Split Squat', 'High-Bar Back Squat'],
       }),
       ex({
         name: 'Glute-Ham Raise',
@@ -289,7 +289,7 @@ function buildBlock1Days(): WorkoutDay[] {
         name: 'Seated Machine Shoulder Press',
         muscleGroups: ['Shoulders'],
         warmupSets: '2-3', workingSets: '2', reps: '10-12', earlyRPE: '~7', lastRPE: '~9', rest: '~2-3 min',
-        substitutions: ['Seated DB Shoulder Press', 'Overhead Cable Shoulder Press'],
+        substitutions: ['Seated DB Shoulder Press', 'Cable Shoulder Press'],
       }),
       ex({
         name: 'Overhead Triceps Extension',
@@ -381,7 +381,7 @@ function buildBlock1Days(): WorkoutDay[] {
         name: 'Rope Triceps Pressdown',
         muscleGroups: ['Triceps'],
         warmupSets: '1', workingSets: '2', reps: '12-15', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
-        substitutions: ['Bar Triceps Pressdown', 'DB Kickback'],
+        substitutions: ['Bar Triceps Pressdown', 'DB Triceps Kickback'],
       }),
       ex({
         name: 'Decline Weighted Crunch',
@@ -445,7 +445,7 @@ function buildBlock2Days(): WorkoutDay[] {
         name: 'Cable Crunch',
         muscleGroups: ['Abs'],
         warmupSets: '1', workingSets: '2', reps: '12-15', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
-        substitutions: ['Weighted Decline Crunch', 'Weighted Crunch'],
+        substitutions: ['Decline Weighted Crunch', 'Weighted Crunch'],
       }),
     ],
   };
@@ -463,7 +463,7 @@ function buildBlock2Days(): WorkoutDay[] {
         substitutions: ['Cuffed Behind-The-Back Lateral Raise', 'Meadows Incline DB Lateral Raise'],
       }),
       ex({
-        name: 'Machine Bench Press',
+        name: 'Flat Machine Chest Press',
         muscleGroups: ['Chest'],
         warmupSets: '2-3', workingSets: '2', reps: '10-12', earlyRPE: '~7', lastRPE: '~9', rest: '~3-5 min',
         substitutions: ['Flat DB Bench Press', 'Barbell Bench Press'],
@@ -511,7 +511,7 @@ function buildBlock2Days(): WorkoutDay[] {
         name: 'Hack Squat',
         muscleGroups: ['Quads'],
         warmupSets: '2-4', workingSets: '2', reps: '8-10', earlyRPE: '~7', lastRPE: '~8', rest: '~3-5 min',
-        substitutions: ['Bulgarian Split Squat', 'High-Bar Back Squat'],
+        substitutions: ['DB Bulgarian Split Squat', 'High-Bar Back Squat'],
       }),
       ex({
         name: 'Single-Leg DB Hip Thrust',
@@ -603,7 +603,7 @@ function buildBlock2Days(): WorkoutDay[] {
         name: 'Neutral-Grip Seated Cable Row',
         muscleGroups: ['Back Thickness'],
         warmupSets: '1', workingSets: '2', reps: '12-15', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
-        substitutions: ['Moto Row', 'Incline Chest-Supported DB Row'],
+        substitutions: ['Moto Row', 'Chest-Supported Incline DB Row'],
       }),
       ex({
         name: 'Cable Rope Hammer Curl',
@@ -719,10 +719,10 @@ function buildBlock2Days(): WorkoutDay[] {
         substitutions: ['Reverse-Grip DB Curl', 'Reverse-Grip Cable Curl'],
       }),
       ex({
-        name: 'Bar Cable Triceps Pressdown',
+        name: 'Bar Triceps Pressdown',
         muscleGroups: ['Triceps'],
         warmupSets: '1', workingSets: '2', reps: '10-12', earlyRPE: '~7-8', lastRPE: '~9', rest: '~1-2 min',
-        substitutions: ['Rope Cable Triceps Pressdown', 'DB Triceps Kickback'],
+        substitutions: ['Rope Triceps Pressdown', 'DB Triceps Kickback'],
       }),
       ex({
         name: 'Bayesian Cable Curl',

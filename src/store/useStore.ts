@@ -12,24 +12,15 @@ import type {
   WorkoutSessionLog,
 } from '@/types';
 import { createSeedProgram, getDefaultProgram } from '@/data/seedProgram';
+import { canonicalExerciseName } from '@/data/exerciseAliases';
 
 export function generateId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-// Seed names that were later renamed from "Base (Variant)" to "Variant Base".
-const LEGACY_SEED_NAMES: Record<string, string> = {
-  'Triceps Extension (Bar)': 'Bar Triceps Extension',
-  'Triceps Pressdown (Bar)': 'Bar Triceps Pressdown',
-  'Triceps Pressdown (Rope)': 'Rope Triceps Pressdown',
-  'Cable Triceps Pressdown (Bar)': 'Bar Cable Triceps Pressdown',
-  'Diverging Pressdown (Rope)': 'Rope Diverging Pressdown',
-  'Close-Grip Pushup (AMRAP)': 'Close-Grip Pushup',
-};
-
-/** Applies the cleaner seed names to exercises still on their original (legacy) name.
- * Matches by day + exercise id and only renames when the name is exactly a legacy seed
- * name, so anything the user renamed or swapped is left alone. */
+/** Applies the current seed names to exercises still on an older name for the same exercise
+ * (see exerciseAliases). Matches by day + exercise id and only renames when the name is an
+ * alias of the seed name, so anything the user renamed or swapped is left alone. */
 function renameLegacySeedExercises(programs: WorkoutProgram[]): WorkoutProgram[] {
   return programs.map((p) => {
     const defaultProgram = getDefaultProgram(p.id);
@@ -43,7 +34,8 @@ function renameLegacySeedExercises(programs: WorkoutProgram[]): WorkoutProgram[]
           ...d,
           exercises: d.exercises.map((e) => {
             const defaultEx = defaultDay.exercises.find((de) => de.id === e.id);
-            return defaultEx && LEGACY_SEED_NAMES[e.name] === defaultEx.name ? { ...e, name: defaultEx.name } : e;
+            // Untouched means: its name is an alias that maps to the name this slot has in the seed.
+            return defaultEx && e.name !== defaultEx.name && canonicalExerciseName(e.name) === defaultEx.name ? { ...e, name: defaultEx.name } : e;
           }),
         };
       }),
@@ -283,7 +275,7 @@ export const useStore = create<AppState>()(
     {
       name: 'workout-app-storage',
       storage: createJSONStorage(() => AsyncStorage),
-      version: 9,
+      version: 10,
       migrate: (persistedState: unknown, version: number) => {
         let state = (persistedState ?? {}) as { programs?: WorkoutProgram[]; profile?: UserProfile; [key: string]: unknown };
         if (version < 3) {
@@ -348,7 +340,7 @@ export const useStore = create<AppState>()(
             profile: { ...DEFAULT_PROFILE, ...state.profile, goalMode: state.profile?.goalMode ?? 'manual' },
           };
         }
-        if (version < 9) {
+        if (version < 10) {
           state = { ...state, programs: Array.isArray(state.programs) ? renameLegacySeedExercises(state.programs) : [] };
         }
         return state;

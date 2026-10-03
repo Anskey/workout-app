@@ -18,12 +18,12 @@ export const WEAK_POINTS: WeakPointOptions[] = [
     muscle: 'Shoulders',
     label: 'Shoulders',
     optionSetA: ['Meadows Incline DB Lateral Raise', 'Machine Lateral Raise', 'Machine Shoulder Press'],
-    optionSetB: ['Reverse Pec Deck', 'Cable Unilateral Face Pull', 'Cable Reverse Flye'],
+    optionSetB: ['Reverse Pec Deck', 'Cable 1-Arm Face Pull', 'Cable Reverse Flye'],
   },
   {
     muscle: 'Back Width',
     label: 'Lats ("Back Width")',
-    optionSetA: ['Moto Row', 'DB Pullover', 'Machine Pullover'],
+    optionSetA: ['Moto Row', 'DB Lat Pullover', 'Machine Pullover'],
     optionSetB: ['Pull-Up', 'Machine Pulldown', 'Helms Row'],
   },
   {
@@ -43,10 +43,10 @@ export const WEAK_POINTS: WeakPointOptions[] = [
     label: 'Chest',
     optionSetA: ['DB Flye', 'Pec Deck', 'Press-Around'],
     optionSetB: [
-      'Incline Chest Press Machine',
-      'Flat Chest Press Machine',
-      'Incline Dumbbell Chest Press',
-      'Flat Dumbbell Chest Press',
+      'Incline Machine Chest Press',
+      'Flat Machine Chest Press',
+      'Incline DB Press',
+      'Flat DB Bench Press',
       'Deficit Pushup',
     ],
   },
@@ -59,7 +59,7 @@ export const WEAK_POINTS: WeakPointOptions[] = [
   {
     muscle: 'Hamstrings',
     label: 'Hamstrings',
-    optionSetA: ['Seated Leg Curl', 'Nordic Curl', 'Standing Cable Leg Curl'],
+    optionSetA: ['Seated Leg Curl', 'Nordic Ham Curl', 'Standing Cable Leg Curl'],
     optionSetB: ['Lying Leg Curl', 'Swiss Ball Leg Curl', 'Sliding Leg Curl'],
   },
   {
@@ -89,7 +89,7 @@ export const WEAK_POINTS: WeakPointOptions[] = [
   {
     muscle: 'Forearms',
     label: 'Forearms',
-    optionSetA: ['DB Wrist Flexion Curl', 'Reverse Grip EZ-Bar Curl', 'Wrist Roller'],
+    optionSetA: ['DB Wrist Flexion Curl', 'Reverse-Grip EZ-Bar Curl', 'Wrist Roller'],
     optionSetB: ['DB Wrist Extension Curl', 'Hand Gripper', 'Plate Pinch'],
   },
   {

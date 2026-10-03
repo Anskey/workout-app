@@ -3,9 +3,8 @@
  * across swaps and across programs. Users' own edits live in the store and take priority. */
 export const EXERCISE_NOTES: Record<string, string> = {
   "Ab Wheel Rollout": "Don't just bend at your hips, use your abs to lower yourself down under control and pull yourself back up. If you don't have the core strength to get all the way extended at the bottom, try to progressively increase the ROM week to week.",
-  "Bar Cable Triceps Pressdown": "Focus on squeezing your triceps to move the weight",
-  "Bar Triceps Extension": "Feel a nasty stretch on the triceps throughout the entire negative. Pause for 1 second in the stretch part of each rep.",
   "Bar Triceps Pressdown": "Focus on squeezing your triceps to move the weight",
+  "Bar Triceps Extension": "Feel a nasty stretch on the triceps throughout the entire negative. Pause for 1 second in the stretch part of each rep.",
   "Barbell RDL": "The RPE is intentionally low here because these will cause a lot of muscle damage. Don't be tempted to go too heavy. To keep tension on the hamstrings, stop about 75% of the way to full lockout on each rep (i.e. stay in the bottom 3/4 of the range of motion).",
   "Bayesian Cable Curl": "If you have a left-right bicep size imbalance, do these 1 arm at a time, starting with the weaker arm. Take the weaker arm to an RPE of 9-10. Then match the reps with the other arm (stop once you've matched the reps, even if the RPE is lower). If you don't have a size imbalance, do these both arms at the same time.",
   "Belt Squat": "Get as deep as you can without excessive back rounding. Control the negative and do a slight pause at the bottom of each rep.",

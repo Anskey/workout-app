@@ -12,19 +12,21 @@ import { ChevronRightIcon } from '@/components/Icons';
 import { useStore } from '@/store/useStore';
 import { ALL_MUSCLE_GROUPS, getMuscleColor } from '@/data/muscleGroups';
 import { buildExerciseLibrary, type LibraryExercise } from '@/data/exerciseLibrary';
+import { countLoggedSessionsByName } from '@/logic/sessionHistory';
 import type { MuscleGroup } from '@/types';
 
 const OTHER = 'Other';
 
 export default function Exercises() {
   const programs = useStore((s) => s.programs);
+  const sessionLogs = useStore((s) => s.sessionLogs);
   const [query, setQuery] = useState('');
 
   // One catalog of every exercise the app knows about, across all programs — not tied to
   // any one program's days or prescriptions — grouped by its primary muscle group.
   const groups = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const library = buildExerciseLibrary(programs).filter((e) => !q || e.name.toLowerCase().includes(q));
+    const library = buildExerciseLibrary(programs, sessionLogs).filter((e) => !q || e.name.toLowerCase().includes(q));
     const byGroup = new Map<string, LibraryExercise[]>();
     library.forEach((e) => {
       const key = e.muscleGroups[0] ?? OTHER;
@@ -33,7 +35,8 @@ export default function Exercises() {
     });
     const order: string[] = [...ALL_MUSCLE_GROUPS, OTHER];
     return order.filter((g) => byGroup.has(g)).map((g) => ({ group: g, exercises: byGroup.get(g)! }));
-  }, [programs, query]);
+  }, [programs, sessionLogs, query]);
+  const loggedCounts = useMemo(() => countLoggedSessionsByName(sessionLogs), [sessionLogs]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -75,6 +78,11 @@ export default function Exercises() {
                   >
                     <View style={{ flex: 1 }}>
                       <Text style={styles.exerciseName}>{exercise.name}</Text>
+                      {(loggedCounts.get(exercise.name.toLowerCase()) ?? 0) > 0 && (
+                        <Text style={styles.loggedText}>
+                          Logged in {loggedCounts.get(exercise.name.toLowerCase())} session{loggedCounts.get(exercise.name.toLowerCase()) === 1 ? '' : 's'}
+                        </Text>
+                      )}
                       {exercise.muscleGroups.length > 0 && (
                         <View style={styles.badgeRow}>
                           {exercise.muscleGroups.map((m: MuscleGroup) => (
@@ -112,6 +120,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16 },
   rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.divider },
   exerciseName: { color: colors.textPrimary, fontSize: 15, fontWeight: '600' },
+  loggedText: { color: colors.gold, fontSize: 12, fontWeight: '600', marginTop: 2 },
   badgeRow: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 },
   emptyText: { color: colors.textSecondary, fontSize: 14 },
 });

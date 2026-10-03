@@ -1,5 +1,6 @@
 import type { SetLog, WeightUnit, WorkoutDay, WorkoutProgram, WorkoutSessionLog } from '@/types';
 import { kgToDisplayValue } from './units';
+import { canonicalExerciseName } from '@/data/exerciseAliases';
 
 /** Which week's prescription (sets/reps/RPE) is due for this exact day, based purely on how
  * many times that day has already been logged before the date in question — a day's own
@@ -155,15 +156,25 @@ export function getSlotExerciseHistory(sessionLogs: WorkoutSessionLog[], dayId: 
 /** Every logged session's best set for an exercise by name, across all programs and days,
  * oldest first — for the exercise library, which isn't tied to any one program slot. */
 export function getExerciseHistoryByName(sessionLogs: WorkoutSessionLog[], exerciseName: string): HistoryPoint[] {
-  const key = exerciseName.trim().toLowerCase();
+  const key = canonicalExerciseName(exerciseName).toLowerCase();
   return [...sessionLogs]
     .sort((a, b) => a.date.localeCompare(b.date))
     .flatMap((log) =>
       log.exerciseLogs
-        .filter((e) => e.exerciseName.trim().toLowerCase() === key)
+        .filter((e) => canonicalExerciseName(e.exerciseName).toLowerCase() === key)
         .map((e) => ({ date: log.date, topSet: bestSet(e.sets) }))
     )
     .filter((p): p is HistoryPoint => p.topSet != null);
+}
+
+/** How many logged sessions include each exercise, keyed by lower-cased canonical name. */
+export function countLoggedSessionsByName(sessionLogs: WorkoutSessionLog[]): Map<string, number> {
+  const counts = new Map<string, number>();
+  sessionLogs.forEach((log) => {
+    const names = new Set(log.exerciseLogs.filter((e) => e.sets.length > 0).map((e) => canonicalExerciseName(e.exerciseName).toLowerCase()));
+    names.forEach((n) => counts.set(n, (counts.get(n) ?? 0) + 1));
+  });
+  return counts;
 }
 
 export function formatSet(set: SetLog | undefined, unit: WeightUnit): string {

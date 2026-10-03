@@ -12,6 +12,7 @@ import { LiftHistoryChart } from '@/components/LiftHistoryChart';
 import { useStore } from '@/store/useStore';
 import { getMuscleColor } from '@/data/muscleGroups';
 import { getFormCues } from '@/data/formCues';
+import { canonicalExerciseName } from '@/data/exerciseAliases';
 import { buildExerciseLibrary } from '@/data/exerciseLibrary';
 import { getExerciseNote } from '@/logic/exerciseNotes';
 import { formatSet, getExerciseHistoryByName } from '@/logic/sessionHistory';
@@ -32,8 +33,8 @@ export default function ExerciseDetail() {
   const [note, setNote] = useState(() => getExerciseNote(exerciseName, exerciseNotes));
 
   const muscles = useMemo(
-    () => buildExerciseLibrary(programs).find((e) => e.name.toLowerCase() === exerciseName.trim().toLowerCase())?.muscleGroups ?? [],
-    [programs, exerciseName]
+    () => buildExerciseLibrary(programs, sessionLogs).find((e) => e.name.toLowerCase() === canonicalExerciseName(exerciseName).toLowerCase())?.muscleGroups ?? [],
+    [programs, sessionLogs, exerciseName]
   );
   const history = useMemo(() => getExerciseHistoryByName(sessionLogs, exerciseName), [sessionLogs, exerciseName]);
   const shownHistory = useMemo(() => filterByWindow(history, historyWindow), [history, historyWindow]);

@@ -1,3 +1,5 @@
+import { canonicalExerciseName } from './exerciseAliases';
+
 /** Short, practical technique cues per exercise — setup, positioning, and the most common
  * mistake to avoid. Keyed by exact exercise name so it applies whether an exercise is the
  * program's default pick or something it was swapped to. Not exhaustive; covers every
@@ -43,7 +45,7 @@ export const FORM_CUES: Record<string, string[]> = {
     'Shoulder blades pulled back and down into the pad before you press.',
     'Press until arms are extended but not locked out hard; control the negative back to a stretch.',
   ],
-  'Bottom-Half Cable Flye': [
+  'Bottom-Half Seated Cable Flye': [
     'Only the bottom half of the range — start with hands near your hips and squeeze in, don’t raise past chest height.',
     'Keep a soft bend in the elbows and think about hugging a barrel, not pressing.',
     'Focus on peak contraction: pause and squeeze your chest together at the bottom of each rep.',
@@ -248,11 +250,6 @@ export const FORM_CUES: Record<string, string[]> = {
     'Keep your elbow still and slightly behind your torso throughout the curl.',
     'Squeeze at the top rather than letting momentum carry the weight.',
   ],
-  'Machine Bench Press': [
-    'Seat height so handles line up with mid-chest.',
-    'Shoulder blades retracted and down into the pad before you press.',
-    'Press to just short of lockout and control the negative back to a stretch at your chest.',
-  ],
   'Bottom-Half Pec Deck': [
     'Only the bottom half of the range — start with arms out wide and bring them to about chest-width, not fully closed.',
     'Keep a slight bend in the elbows and lead with them, not your hands.',
@@ -341,5 +338,5 @@ export const FORM_CUES: Record<string, string[]> = {
 };
 
 export function getFormCues(exerciseName: string): string[] | undefined {
-  return FORM_CUES[exerciseName];
+  return FORM_CUES[canonicalExerciseName(exerciseName)] ?? FORM_CUES[exerciseName];
 }
