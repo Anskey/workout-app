@@ -22,6 +22,7 @@ import {
   parseSetCount,
 } from '@/logic/sessionHistory';
 import { todayISODate } from '@/logic/dates';
+import { getExerciseNote } from '@/logic/exerciseNotes';
 import { displayValueToKg, kgToDisplayValue } from '@/logic/units';
 import { DATE_WINDOWS, filterByWindow, type DateWindow } from '@/logic/dateWindows';
 import type { Exercise, SetLog, WeekPrescription, WorkoutSessionLog } from '@/types';
@@ -65,6 +66,7 @@ export default function SessionLog() {
   const sessionLogs = useStore((s) => s.sessionLogs);
   const upsertSessionLog = useStore((s) => s.upsertSessionLog);
   const weightUnit = useStore((s) => s.profile.weightUnit);
+  const exerciseNotes = useStore((s) => s.exerciseNotes);
 
   const program = programs.find((p) => p.id === programId);
   const day = program?.days.find((d) => d.id === dayId);
@@ -178,6 +180,7 @@ export default function SessionLog() {
           const topSet = getLastSlotTopSet(sessionLogs, dayId, exercise.id);
           const sets = setsByExercise[exercise.id] ?? [];
           const cues = getFormCues(displayName);
+          const note = getExerciseNote(displayName, exerciseNotes);
           return (
             <Card key={exercise.id} style={{ marginBottom: 14 }}>
               <View style={styles.titleRow}>
@@ -202,6 +205,11 @@ export default function SessionLog() {
                   Last best: {formatSet(topSet, weightUnit)}
                   {lastSlotLog && lastSlotLog.exerciseName !== displayName ? ` (as ${lastSlotLog.exerciseName})` : ''}
                 </Text>
+              )}
+              {!!note && (
+                <View style={styles.notesBox}>
+                  <Text style={styles.notesText}>{note}</Text>
+                </View>
               )}
               {cues && (
                 <View style={styles.cuesBox}>
@@ -281,6 +289,8 @@ const styles = StyleSheet.create({
   lastText: { color: colors.gold, fontSize: 12.5, marginTop: 3, fontWeight: '600' },
   cuesBox: { marginTop: 8, backgroundColor: colors.bgAlt, borderRadius: 2, padding: 10 },
   cueText: { color: colors.textSecondary, fontSize: 12, lineHeight: 17 },
+  notesBox: { marginTop: 8, backgroundColor: colors.bgAlt, borderRadius: 2, padding: 10 },
+  notesText: { color: colors.textSecondary, fontSize: 12, lineHeight: 17 },
   setHeaderRow: { flexDirection: 'row', alignItems: 'center', marginTop: 14, marginBottom: 6, gap: 6 },
   setHeaderLabel: { color: colors.textFaint, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, width: 74, textAlign: 'center' },
   setHeaderLabelNarrow: { color: colors.textFaint, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: 0.3, width: 50, textAlign: 'center' },

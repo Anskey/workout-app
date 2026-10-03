@@ -152,6 +152,20 @@ export function getSlotExerciseHistory(sessionLogs: WorkoutSessionLog[], dayId: 
     .filter((p): p is HistoryPoint => p.topSet != null);
 }
 
+/** Every logged session's best set for an exercise by name, across all programs and days,
+ * oldest first — for the exercise library, which isn't tied to any one program slot. */
+export function getExerciseHistoryByName(sessionLogs: WorkoutSessionLog[], exerciseName: string): HistoryPoint[] {
+  const key = exerciseName.trim().toLowerCase();
+  return [...sessionLogs]
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .flatMap((log) =>
+      log.exerciseLogs
+        .filter((e) => e.exerciseName.trim().toLowerCase() === key)
+        .map((e) => ({ date: log.date, topSet: bestSet(e.sets) }))
+    )
+    .filter((p): p is HistoryPoint => p.topSet != null);
+}
+
 export function formatSet(set: SetLog | undefined, unit: WeightUnit): string {
   if (!set) return '';
   const weight = set.weightKg != null ? `${kgToDisplayValue(set.weightKg, unit)}${unit}` : 'bodyweight';

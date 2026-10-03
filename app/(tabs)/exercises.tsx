@@ -7,36 +7,36 @@ import { Badge, ScreenTitle, SectionHeader } from '@/theme/ui';
 import { Card } from '@/theme/Card';
 import { FormScrollView } from '@/components/FormScrollView';
 import { ChevronRightIcon } from '@/components/Icons';
-import { useActiveProgram } from '@/store/useStore';
-import { getMuscleColor } from '@/data/muscleGroups';
+import { useStore } from '@/store/useStore';
+import { ALL_MUSCLE_GROUPS, getMuscleColor } from '@/data/muscleGroups';
+import { buildExerciseLibrary, type LibraryExercise } from '@/data/exerciseLibrary';
+import type { MuscleGroup } from '@/types';
+
+const OTHER = 'Other';
 
 export default function Exercises() {
-  const program = useActiveProgram();
+  const programs = useStore((s) => s.programs);
   const [query, setQuery] = useState('');
 
-  const days = useMemo(() => {
-    if (!program) return [];
+  // One catalog of every exercise the app knows about, across all programs — not tied to
+  // any one program's days or prescriptions — grouped by its primary muscle group.
+  const groups = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return program.days;
-    return program.days
-      .map((day) => ({ ...day, exercises: day.exercises.filter((e) => e.name.toLowerCase().includes(q)) }))
-      .filter((day) => day.exercises.length > 0);
-  }, [program, query]);
-
-  if (!program) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.empty}>
-          <Text style={styles.emptyText}>No program yet.</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+    const library = buildExerciseLibrary(programs).filter((e) => !q || e.name.toLowerCase().includes(q));
+    const byGroup = new Map<string, LibraryExercise[]>();
+    library.forEach((e) => {
+      const key = e.muscleGroups[0] ?? OTHER;
+      if (!byGroup.has(key)) byGroup.set(key, []);
+      byGroup.get(key)!.push(e);
+    });
+    const order: string[] = [...ALL_MUSCLE_GROUPS, OTHER];
+    return order.filter((g) => byGroup.has(g)).map((g) => ({ group: g, exercises: byGroup.get(g)! }));
+  }, [programs, query]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <FormScrollView contentContainerStyle={styles.scroll}>
-        <ScreenTitle subtitle="Every exercise in your program — tap one to view or edit it.">Exercises</ScreenTitle>
+        <ScreenTitle subtitle="Every exercise you can use, in any program. Tap one to see or edit its notes.">Exercises</ScreenTitle>
 
         <TextInput
           value={query}
@@ -46,34 +46,28 @@ export default function Exercises() {
           style={styles.search}
         />
 
-        {days.length === 0 ? (
+        {groups.length === 0 ? (
           <Text style={styles.emptyText}>No exercises match &ldquo;{query}&rdquo;.</Text>
         ) : (
-          days.map((day) => (
-            <View key={day.id} style={{ marginBottom: 18 }}>
-              <SectionHeader>{day.name}</SectionHeader>
+          groups.map(({ group, exercises }) => (
+            <View key={group} style={{ marginBottom: 18 }}>
+              <SectionHeader>{group}</SectionHeader>
               <Card padded={false}>
-                {day.exercises.map((exercise, i) => (
+                {exercises.map((exercise, i) => (
                   <Pressable
-                    key={exercise.id}
-                    onPress={() =>
-                      router.push({
-                        pathname: '/modals/exercise-editor',
-                        params: { programId: program.id, dayId: day.id, exerciseId: exercise.id },
-                      })
-                    }
-                    style={[styles.row, i !== day.exercises.length - 1 && styles.rowBorder]}
+                    key={exercise.name}
+                    onPress={() => router.push({ pathname: '/modals/exercise-detail', params: { name: exercise.name } })}
+                    style={[styles.row, i !== exercises.length - 1 && styles.rowBorder]}
                   >
                     <View style={{ flex: 1 }}>
                       <Text style={styles.exerciseName}>{exercise.name}</Text>
-                      <Text style={styles.exerciseMeta}>
-                        {exercise.workingSets} sets × {exercise.reps} reps
-                      </Text>
-                      <View style={styles.badgeRow}>
-                        {exercise.muscleGroups.map((m) => (
-                          <Badge key={m} label={m} color={getMuscleColor(m)} />
-                        ))}
-                      </View>
+                      {exercise.muscleGroups.length > 0 && (
+                        <View style={styles.badgeRow}>
+                          {exercise.muscleGroups.map((m: MuscleGroup) => (
+                            <Badge key={m} label={m} color={getMuscleColor(m)} />
+                          ))}
+                        </View>
+                      )}
                     </View>
                     <ChevronRightIcon color={colors.textFaint} />
                   </Pressable>
@@ -102,11 +96,9 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginBottom: 20,
   },
-  row: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 12, paddingHorizontal: 16 },
+  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16 },
   rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.divider },
   exerciseName: { color: colors.textPrimary, fontSize: 15, fontWeight: '600' },
-  exerciseMeta: { color: colors.textSecondary, fontSize: 12.5, marginTop: 3 },
   badgeRow: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 30 },
   emptyText: { color: colors.textSecondary, fontSize: 14 },
 });

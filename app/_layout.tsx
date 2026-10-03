@@ -89,6 +89,7 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="modals/measurement-log" options={{ presentation: 'modal' }} />
             <Stack.Screen name="modals/nutrition-log" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="modals/exercise-detail" options={{ presentation: 'modal' }} />
             <Stack.Screen name="modals/exercise-editor" options={{ presentation: 'modal' }} />
             <Stack.Screen name="modals/exercise-swap" options={{ presentation: 'modal' }} />
             <Stack.Screen name="modals/session-log" options={{ presentation: 'modal' }} />

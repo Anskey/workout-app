@@ -17,6 +17,40 @@ export function generateId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
+// Seed names that were later renamed from "Base (Variant)" to "Variant Base".
+const LEGACY_SEED_NAMES: Record<string, string> = {
+  'Triceps Extension (Bar)': 'Bar Triceps Extension',
+  'Triceps Pressdown (Bar)': 'Bar Triceps Pressdown',
+  'Triceps Pressdown (Rope)': 'Rope Triceps Pressdown',
+  'Cable Triceps Pressdown (Bar)': 'Bar Cable Triceps Pressdown',
+  'Diverging Pressdown (Rope)': 'Rope Diverging Pressdown',
+  'Close-Grip Pushup (AMRAP)': 'Close-Grip Pushup',
+};
+
+/** Applies the cleaner seed names to exercises still on their original (legacy) name.
+ * Matches by day + exercise id and only renames when the name is exactly a legacy seed
+ * name, so anything the user renamed or swapped is left alone. */
+function renameLegacySeedExercises(programs: WorkoutProgram[]): WorkoutProgram[] {
+  return programs.map((p) => {
+    const defaultProgram = getDefaultProgram(p.id);
+    if (!defaultProgram) return p;
+    return {
+      ...p,
+      days: p.days.map((d) => {
+        const defaultDay = defaultProgram.days.find((dd) => dd.id === d.id);
+        if (!defaultDay) return d;
+        return {
+          ...d,
+          exercises: d.exercises.map((e) => {
+            const defaultEx = defaultDay.exercises.find((de) => de.id === e.id);
+            return defaultEx && LEGACY_SEED_NAMES[e.name] === defaultEx.name ? { ...e, name: defaultEx.name } : e;
+          }),
+        };
+      }),
+    };
+  });
+}
+
 const DEFAULT_PROFILE: UserProfile = {
   name: '',
   heightCm: 175,
@@ -37,8 +71,12 @@ interface AppState {
   measurements: MeasurementEntry[];
   nutritionLogs: NutritionEntry[];
   sessionLogs: WorkoutSessionLog[];
+  /** The user's own notes per exercise, keyed by lower-cased exercise name. Overrides the
+   * built-in notes (an empty string means "cleared on purpose"). */
+  exerciseNotes: Record<string, string>;
 
   setProfile: (profile: Partial<UserProfile>) => void;
+  setExerciseNote: (exerciseName: string, note: string) => void;
   completeOnboarding: (profile: UserProfile, firstMeasurement: Omit<MeasurementEntry, 'id'>) => void;
 
   addProgram: (program: Omit<WorkoutProgram, 'id' | 'createdAt'>) => string;
@@ -82,11 +120,13 @@ export interface SyncableState {
   measurements: MeasurementEntry[];
   nutritionLogs: NutritionEntry[];
   sessionLogs: WorkoutSessionLog[];
+  /** Optional so older backups and cloud snapshots (which predate it) still load. */
+  exerciseNotes?: Record<string, string>;
 }
 
 export function pickSyncableState(state: AppState): SyncableState {
-  const { profile, programs, activeProgramId, measurements, nutritionLogs, sessionLogs } = state;
-  return { profile, programs, activeProgramId, measurements, nutritionLogs, sessionLogs };
+  const { profile, programs, activeProgramId, measurements, nutritionLogs, sessionLogs, exerciseNotes } = state;
+  return { profile, programs, activeProgramId, measurements, nutritionLogs, sessionLogs, exerciseNotes };
 }
 
 export const useStore = create<AppState>()(
@@ -98,8 +138,11 @@ export const useStore = create<AppState>()(
       measurements: [],
       nutritionLogs: [],
       sessionLogs: [],
+      exerciseNotes: {},
 
       setProfile: (partial) => set((s) => ({ profile: { ...s.profile, ...partial } })),
+      setExerciseNote: (exerciseName, note) =>
+        set((s) => ({ exerciseNotes: { ...s.exerciseNotes, [exerciseName.trim().toLowerCase()]: note } })),
 
       completeOnboarding: (profile, firstMeasurement) =>
         set((s) => ({
@@ -235,12 +278,12 @@ export const useStore = create<AppState>()(
         }),
       deleteSessionLog: (id) => set((s) => ({ sessionLogs: s.sessionLogs.filter((l) => l.id !== id) })),
 
-      hydrateFromCloud: (data) => set(data),
+      hydrateFromCloud: (data) => set(data.programs ? { ...data, programs: renameLegacySeedExercises(data.programs) } : data),
     }),
     {
       name: 'workout-app-storage',
       storage: createJSONStorage(() => AsyncStorage),
-      version: 8,
+      version: 9,
       migrate: (persistedState: unknown, version: number) => {
         let state = (persistedState ?? {}) as { programs?: WorkoutProgram[]; profile?: UserProfile; [key: string]: unknown };
         if (version < 3) {
@@ -304,6 +347,9 @@ export const useStore = create<AppState>()(
             ...state,
             profile: { ...DEFAULT_PROFILE, ...state.profile, goalMode: state.profile?.goalMode ?? 'manual' },
           };
+        }
+        if (version < 9) {
+          state = { ...state, programs: Array.isArray(state.programs) ? renameLegacySeedExercises(state.programs) : [] };
         }
         return state;
       },

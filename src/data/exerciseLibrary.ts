@@ -30,8 +30,13 @@ export function buildExerciseLibrary(programs: WorkoutProgram[]): LibraryExercis
     program.days.forEach((day) => {
       day.exercises.forEach((exercise) => {
         if (exercise.isWeakPointSlot) return;
+        const muscles = exercise.muscleGroups.filter((m) => m !== 'Weak Point');
         rememberDisplay(exercise.name);
-        add(exercise.name, exercise.muscleGroups.filter((m) => m !== 'Weak Point'));
+        add(exercise.name, muscles);
+        (exercise.substitutions ?? []).forEach((sub) => {
+          rememberDisplay(sub);
+          add(sub, muscles);
+        });
       });
     });
   });
