@@ -1,4 +1,5 @@
 import { canonicalExerciseName } from './exerciseAliases';
+import { PREVIOUS_NAMES } from './legacySlotNames';
 
 /** Short, practical technique cues per exercise — setup, positioning, and the most common
  * mistake to avoid. Keyed by exact exercise name so it applies whether an exercise is the
@@ -338,5 +339,8 @@ export const FORM_CUES: Record<string, string[]> = {
 };
 
 export function getFormCues(exerciseName: string): string[] | undefined {
-  return FORM_CUES[canonicalExerciseName(exerciseName)] ?? FORM_CUES[exerciseName];
+  const name = canonicalExerciseName(exerciseName);
+  // Cues written for an exercise's previous built-in name still apply after it was renamed.
+  const previous = (PREVIOUS_NAMES[name] ?? []).map((n) => FORM_CUES[n]).find(Boolean);
+  return FORM_CUES[name] ?? FORM_CUES[exerciseName] ?? previous;
 }

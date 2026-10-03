@@ -12,35 +12,10 @@ import type {
   WorkoutSessionLog,
 } from '@/types';
 import { createSeedProgram, getDefaultProgram } from '@/data/seedProgram';
-import { canonicalExerciseName } from '@/data/exerciseAliases';
+import { renameLegacyLoggedNames, renameLegacySeedExercises } from '@/logic/seedMigration';
 
 export function generateId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
-}
-
-/** Applies the current seed names to exercises still on an older name for the same exercise
- * (see exerciseAliases). Matches by day + exercise id and only renames when the name is an
- * alias of the seed name, so anything the user renamed or swapped is left alone. */
-function renameLegacySeedExercises(programs: WorkoutProgram[]): WorkoutProgram[] {
-  return programs.map((p) => {
-    const defaultProgram = getDefaultProgram(p.id);
-    if (!defaultProgram) return p;
-    return {
-      ...p,
-      days: p.days.map((d) => {
-        const defaultDay = defaultProgram.days.find((dd) => dd.id === d.id);
-        if (!defaultDay) return d;
-        return {
-          ...d,
-          exercises: d.exercises.map((e) => {
-            const defaultEx = defaultDay.exercises.find((de) => de.id === e.id);
-            // Untouched means: its name is an alias that maps to the name this slot has in the seed.
-            return defaultEx && e.name !== defaultEx.name && canonicalExerciseName(e.name) === defaultEx.name ? { ...e, name: defaultEx.name } : e;
-          }),
-        };
-      }),
-    };
-  });
 }
 
 const DEFAULT_PROFILE: UserProfile = {
@@ -270,12 +245,17 @@ export const useStore = create<AppState>()(
         }),
       deleteSessionLog: (id) => set((s) => ({ sessionLogs: s.sessionLogs.filter((l) => l.id !== id) })),
 
-      hydrateFromCloud: (data) => set(data.programs ? { ...data, programs: renameLegacySeedExercises(data.programs) } : data),
+      hydrateFromCloud: (data) =>
+        set({
+          ...data,
+          ...(data.programs ? { programs: renameLegacySeedExercises(data.programs) } : {}),
+          ...(data.sessionLogs ? { sessionLogs: renameLegacyLoggedNames(data.sessionLogs) } : {}),
+        }),
     }),
     {
       name: 'workout-app-storage',
       storage: createJSONStorage(() => AsyncStorage),
-      version: 10,
+      version: 11,
       migrate: (persistedState: unknown, version: number) => {
         let state = (persistedState ?? {}) as { programs?: WorkoutProgram[]; profile?: UserProfile; [key: string]: unknown };
         if (version < 3) {
@@ -340,8 +320,12 @@ export const useStore = create<AppState>()(
             profile: { ...DEFAULT_PROFILE, ...state.profile, goalMode: state.profile?.goalMode ?? 'manual' },
           };
         }
-        if (version < 10) {
-          state = { ...state, programs: Array.isArray(state.programs) ? renameLegacySeedExercises(state.programs) : [] };
+        if (version < 11) {
+          state = {
+            ...state,
+            programs: Array.isArray(state.programs) ? renameLegacySeedExercises(state.programs) : [],
+            ...(Array.isArray((state as any).sessionLogs) ? { sessionLogs: renameLegacyLoggedNames((state as any).sessionLogs) } : {}),
+          };
         }
         return state;
       },
