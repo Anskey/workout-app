@@ -7,6 +7,15 @@ export interface LibraryExercise {
   muscleGroups: MuscleGroup[];
 }
 
+/** Exercises that aren't part of any built-in program but that the user trains, so they're
+ * always in the library (and available in the swap picker) without needing a program slot. */
+const EXTRA_EXERCISES: LibraryExercise[] = [
+  { name: 'Machine Chest Press', muscleGroups: ['Chest'] },
+  { name: 'Bottom-Half Incline Chest Press Machine', muscleGroups: ['Chest'] },
+  { name: 'Bottom-Half Seated Leg Press', muscleGroups: ['Quads'] },
+  { name: 'Bottom-Half Leg Press Calf Press', muscleGroups: ['Calves'] },
+];
+
 /** A searchable catalog of every exercise name known to the app: everything currently
  * used across all of the user's programs, everything in the built-in program (so swapped-out
  * exercises stay findable), plus every option in the Weak Points table. */
@@ -46,6 +55,11 @@ export function buildExerciseLibrary(programs: WorkoutProgram[]): LibraryExercis
       rememberDisplay(name);
       add(name, [wp.muscle]);
     });
+  });
+
+  EXTRA_EXERCISES.forEach((e) => {
+    rememberDisplay(e.name);
+    add(e.name, e.muscleGroups);
   });
 
   return Array.from(byName.entries())
